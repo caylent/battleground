@@ -194,6 +194,68 @@ export const antrhopicClaudeSonnet37Config: TextModelConfig = {
   },
 };
 
+export const anthropicClaude4SonnetConfig: TextModelConfig = {
+  systemPrompt: "",
+  maxTokens: {
+    value: 4096,
+    min: 1,
+    max: 128000,
+    default: 4096,
+  },
+  temperature: {
+    value: 1,
+    min: 0,
+    max: 1,
+    default: 1,
+  },
+  topP: {
+    value: 0.999,
+    min: 0,
+    max: 1,
+    default: 0.999,
+  },
+  reasoning: {
+    enabled: false,
+    budgetTokens: {
+      value: 4096,
+      min: 1024,
+      max: 128000,
+      default: 4096,
+    },
+  },
+};
+
+export const anthropicClaude4OpusConfig: TextModelConfig = {
+  systemPrompt: "",
+  maxTokens: {
+    value: 4096,
+    min: 1,
+    max: 128000,
+    default: 4096,
+  },
+  temperature: {
+    value: 1,
+    min: 0,
+    max: 1,
+    default: 1,
+  },
+  topP: {
+    value: 0.999,
+    min: 0,
+    max: 1,
+    default: 0.999,
+  },
+  reasoning: {
+    enabled: false,
+    budgetTokens: {
+      value: 4096,
+      min: 1024,
+      max: 128000,
+      default: 4096,
+    },
+  },
+};
+
 export const cohereCommandRModelConfig: TextModelConfig = {
   systemPrompt: "",
   maxTokens: {
