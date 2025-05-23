@@ -967,5 +967,47 @@
     ],
     "providerName": "Mistral AI",
     "responseStreamingSupported": true
+  },
+  {
+    "customizationsSupported": [],
+    "inferenceTypesSupported": [
+      "ON_DEMAND"
+    ],
+    "inputModalities": [
+      "TEXT",
+      "IMAGE"
+    ],
+    "modelArn": "arn:aws:bedrock:us-east-1::foundation-model/anthropic.claude-sonnet-4-20250514-v1:0",
+    "modelId": "anthropic.claude-sonnet-4-20250514-v1:0",
+    "modelLifecycle": {
+      "status": "ACTIVE"
+    },
+    "modelName": "Claude 4 Sonnet",
+    "outputModalities": [
+      "TEXT"
+    ],
+    "providerName": "Anthropic",
+    "responseStreamingSupported": true
+  },
+  {
+    "customizationsSupported": [],
+    "inferenceTypesSupported": [
+      "ON_DEMAND"
+    ],
+    "inputModalities": [
+      "TEXT",
+      "IMAGE"
+    ],
+    "modelArn": "arn:aws:bedrock:us-east-1::foundation-model/anthropic.claude-opus-4-20250514-v1:0",
+    "modelId": "anthropic.claude-opus-4-20250514-v1:0",
+    "modelLifecycle": {
+      "status": "ACTIVE"
+    },
+    "modelName": "Claude 4 Opus",
+    "outputModalities": [
+      "TEXT"
+    ],
+    "providerName": "Anthropic",
+    "responseStreamingSupported": true
   }
 ]
