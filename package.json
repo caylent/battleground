@@ -7,7 +7,9 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "postinstall": "patch-package"
+    "postinstall": "patch-package",
+    "migrate-models": "npx ts-node src/scripts/migrate-models.ts",
+    "payload": "cross-env PAYLOAD_CONFIG_PATH=payload.config.ts payload"
   },
   "dependencies": {
     "@ai-sdk/amazon-bedrock": "^2.2.9",
@@ -22,6 +24,9 @@
     "@aws-sdk/s3-request-presigner": "^3.738.0",
     "@clerk/nextjs": "^6.20.1",
     "@clerk/shared": "^3.9.4",
+    "@payloadcms/db-mongodb": "^3.43.0",
+    "@payloadcms/next": "^3.43.0",
+    "@payloadcms/richtext-lexical": "^3.43.0",
     "@radix-ui/react-accordion": "^1.2.2",
     "@radix-ui/react-alert-dialog": "^1.1.5",
     "@radix-ui/react-aspect-ratio": "^1.1.1",
@@ -75,6 +80,7 @@
     "nanoid": "^5.0.9",
     "next": "^15.3.2",
     "next-themes": "^0.4.4",
+    "payload": "^3.43.0",
     "react": "19.0.0",
     "react-csv": "^2.2.2",
     "react-day-picker": "^9.7.0",
@@ -110,6 +116,7 @@
     "@types/react-speech-recognition": "^3.9.5",
     "@types/react-syntax-highlighter": "^15.5.13",
     "autoprefixer": "^10.4.20",
+    "cross-env": "^7.0.3",
     "eslint": "^8.57.1",
     "eslint-config-next": "15.1.2",
     "eslint-config-prettier": "^9.1.0",
@@ -118,6 +125,7 @@
     "prettier": "^3.4.2",
     "prettier-plugin-tailwindcss": "^0.6.9",
     "tailwindcss": "^3.4.17",
+    "ts-node": "^10.9.2",
     "typescript": "^5.7.2"
   },
   "overrides": {

@@ -1,5 +1,5 @@
 import { TextModel } from "@/lib/model/model.type";
-import { textModels } from "@/lib/model/models";
+import { getTextModels, textModels } from "@/lib/model/models";
 import { ImageData } from "@/types/image-data.type";
 import { Message } from "ai";
 import { nanoid } from "nanoid";
@@ -31,7 +31,10 @@ export type ChatParams = {
 type ChatStoreState = {
   // State
   chats: Chat[];
+  dynamicModels: TextModel[];
+  modelsLoaded: boolean;
   // Actions
+  loadDynamicModels: () => Promise<void>;
   addChat: () => void;
   removeChat: (id: string) => void;
   resetChats: () => void;
@@ -46,25 +49,59 @@ type ChatStoreState = {
   setChatMessages: (id: string, messages: Message[]) => void;
 };
 
+const getInitialModel = (dynamicModels: TextModel[]): TextModel => {
+  return dynamicModels.length > 0 ? dynamicModels[0] : textModels[0];
+};
+
 export const useChatStore = create<ChatStoreState>()(
   persist(
-    immer((set) => ({
+    immer((set, get) => ({
       chats: [
         {
           id: nanoid(),
-          model: textModels[0],
+          model: textModels[0], // Will be updated when dynamic models load
           messages: [],
           input: "",
           attachments: [],
           synced: true,
         },
       ],
+      dynamicModels: [],
+      modelsLoaded: false,
+
+      loadDynamicModels: async () => {
+        try {
+          const models = await getTextModels();
+          set((state) => {
+            state.dynamicModels = models;
+            state.modelsLoaded = true;
+            
+            // Update existing chats to use dynamic models if their current model doesn't exist
+            state.chats.forEach(chat => {
+              const currentModel = models.find(m => m.id === chat.model.id);
+              if (!currentModel && models.length > 0) {
+                chat.model = models[0];
+              } else if (currentModel) {
+                chat.model = currentModel;
+              }
+            });
+          });
+          console.log(`Loaded ${models.length} dynamic models`);
+        } catch (error) {
+          console.error('Failed to load dynamic models:', error);
+          set((state) => {
+            state.dynamicModels = textModels; // Fallback to static
+            state.modelsLoaded = true;
+          });
+        }
+      },
 
       addChat: () =>
         set((state) => {
+          const models = state.modelsLoaded ? state.dynamicModels : textModels;
           state.chats.push({
             id: nanoid(),
-            model: textModels[0],
+            model: getInitialModel(models),
             input: "",
             attachments: [],
             synced: true,
@@ -78,9 +115,10 @@ export const useChatStore = create<ChatStoreState>()(
           if (chatIndex === -1) return state;
           state.chats.splice(chatIndex, 1);
           if (state.chats.length === 0) {
+            const models = state.modelsLoaded ? state.dynamicModels : textModels;
             state.chats.push({
               id: nanoid(),
-              model: textModels[0],
+              model: getInitialModel(models),
               input: "",
               attachments: [],
               synced: true,
@@ -237,7 +275,7 @@ export const useChatStore = create<ChatStoreState>()(
     {
       name: "chat-store",
       storage: createJSONStorage(() => localStorage),
-      version: 2,
+      version: 3, // Increment version for new dynamic models feature
       // don't store messages or attachments in local storage
       partialize: (state) => {
         return {
@@ -251,6 +289,8 @@ export const useChatStore = create<ChatStoreState>()(
               })),
             ],
           })),
+          dynamicModels: [], // Don't persist dynamic models
+          modelsLoaded: false,
         };
       },
       onRehydrateStorage: () => (state) => {
@@ -269,9 +309,15 @@ export const useChatStore = create<ChatStoreState>()(
         // handles legacy state
         state?.chats.forEach((chat, idx) => {
           if (Array.isArray(chat.model.config) || chat.model.systemPromptSupport === undefined) {
-            state.setChatModel(chat.id, textModels.find((m) => m.id === chat.model.id) ?? textModels[0]);
+            const fallbackModel = textModels.find((m) => m.id === chat.model.id) ?? textModels[0];
+            state.setChatModel(chat.id, fallbackModel);
           }
         });
+
+        // Load dynamic models after rehydration
+        setTimeout(() => {
+          state?.loadDynamicModels();
+        }, 100);
       },
     },
   ),
@@ -296,4 +342,10 @@ export const useChatStoreHydrated = () => {
   }, []);
 
   return hydrated;
+};
+
+// Hook to get available models (dynamic or static fallback)
+export const useAvailableModels = () => {
+  const { dynamicModels, modelsLoaded } = useChatStore();
+  return modelsLoaded ? dynamicModels : textModels;
 };
