@@ -1,12 +1,12 @@
-import { TextModel } from "@/lib/model/model.type";
-import { textModels } from "@/lib/model/models";
-import { ImageData } from "@/types/image-data.type";
-import { Message } from "ai";
-import { nanoid } from "nanoid";
-import { useEffect, useState } from "react";
-import { create } from "zustand";
-import { createJSONStorage, persist } from "zustand/middleware";
-import { immer } from "zustand/middleware/immer";
+import type { Message } from 'ai';
+import { nanoid } from 'nanoid';
+import { useEffect, useState } from 'react';
+import { create } from 'zustand';
+import { createJSONStorage, persist } from 'zustand/middleware';
+import { immer } from 'zustand/middleware/immer';
+import type { TextModel } from '@/lib/model/model.type';
+import { textModels } from '@/lib/model/models';
+import type { ImageData } from '@/types/image-data.type';
 
 export type Chat = {
   id: string;
@@ -54,7 +54,7 @@ export const useChatStore = create<ChatStoreState>()(
           id: nanoid(),
           model: textModels[0],
           messages: [],
-          input: "",
+          input: '',
           attachments: [],
           synced: true,
         },
@@ -65,7 +65,7 @@ export const useChatStore = create<ChatStoreState>()(
           state.chats.push({
             id: nanoid(),
             model: textModels[0],
-            input: "",
+            input: '',
             attachments: [],
             synced: true,
             messages: [],
@@ -81,7 +81,7 @@ export const useChatStore = create<ChatStoreState>()(
             state.chats.push({
               id: nanoid(),
               model: textModels[0],
-              input: "",
+              input: '',
               attachments: [],
               synced: true,
               messages: [],
@@ -95,7 +95,7 @@ export const useChatStore = create<ChatStoreState>()(
           if (chatIndex === -1) return state;
           state.chats[chatIndex].model = model;
           state.chats[chatIndex].id = nanoid();
-          state.chats[chatIndex].input = "";
+          state.chats[chatIndex].input = '';
           state.chats[chatIndex].attachments = [];
           state.chats[chatIndex].messages = [];
         }),
@@ -105,22 +105,32 @@ export const useChatStore = create<ChatStoreState>()(
           const chatIndex = state.chats.findIndex((chat) => chat.id === id);
           if (chatIndex === -1) return state;
           state.chats[chatIndex].model.config = {
-            systemPrompt: params.systemPrompt ?? state.chats[chatIndex].model.config?.systemPrompt,
+            systemPrompt:
+              params.systemPrompt ??
+              state.chats[chatIndex].model.config?.systemPrompt,
             maxTokens: {
               ...state.chats[chatIndex].model.config?.maxTokens,
-              value: params.maxTokens ?? state.chats[chatIndex].model.config?.maxTokens.value,
+              value:
+                params.maxTokens ??
+                state.chats[chatIndex].model.config?.maxTokens.value,
             },
             temperature: {
               ...state.chats[chatIndex].model.config?.temperature,
-              value: params.temperature ?? state.chats[chatIndex].model.config?.temperature.value,
+              value:
+                params.temperature ??
+                state.chats[chatIndex].model.config?.temperature.value,
             },
             topP: {
               ...state.chats[chatIndex].model.config?.topP,
-              value: params.topP ?? state.chats[chatIndex].model.config?.topP.value,
+              value:
+                params.topP ?? state.chats[chatIndex].model.config?.topP.value,
             },
             reasoning: {
               ...state.chats[chatIndex].model.config?.reasoning,
-              enabled: params.reasoning?.enabled ?? state.chats[chatIndex].model.config?.reasoning?.enabled ?? false,
+              enabled:
+                params.reasoning?.enabled ??
+                state.chats[chatIndex].model.config?.reasoning?.enabled ??
+                false,
               budgetTokens: {
                 min: 0,
                 max: 4096,
@@ -128,7 +138,8 @@ export const useChatStore = create<ChatStoreState>()(
                 ...state.chats[chatIndex].model.config?.reasoning?.budgetTokens,
                 value:
                   params.reasoning?.budgetTokens ??
-                  state.chats[chatIndex].model.config?.reasoning?.budgetTokens?.value ??
+                  state.chats[chatIndex].model.config?.reasoning?.budgetTokens
+                    ?.value ??
                   1024,
               },
             },
@@ -142,7 +153,7 @@ export const useChatStore = create<ChatStoreState>()(
           if (chatIndex === -1) return state;
           // changing the chat id will reset the chat within the useChat hook
           state.chats[chatIndex].id = nanoid();
-          state.chats[chatIndex].input = "";
+          state.chats[chatIndex].input = '';
           state.chats[chatIndex].attachments = [];
           state.chats[chatIndex].messages = [];
         });
@@ -153,7 +164,7 @@ export const useChatStore = create<ChatStoreState>()(
           for (const chat of state.chats) {
             // changing the chat id will reset the chat within the useChat hook
             chat.id = nanoid();
-            chat.input = "";
+            chat.input = '';
             chat.attachments = [];
             chat.messages = [];
           }
@@ -166,7 +177,7 @@ export const useChatStore = create<ChatStoreState>()(
           if (chatIndex === -1) return state;
           if (state.chats[chatIndex].synced) {
             for (const chat of state.chats) {
-              if (chat.synced && chat.model.inputModalities.includes("TEXT")) {
+              if (chat.synced && chat.model.inputModalities.includes('TEXT')) {
                 chat.input = input;
               }
             }
@@ -182,7 +193,7 @@ export const useChatStore = create<ChatStoreState>()(
           if (chatIndex === -1) return state;
           if (state.chats[chatIndex].synced) {
             for (const chat of state.chats) {
-              if (chat.synced && chat.model.inputModalities.includes("IMAGE")) {
+              if (chat.synced && chat.model.inputModalities.includes('IMAGE')) {
                 chat.attachments.push(attachment);
               }
             }
@@ -198,12 +209,14 @@ export const useChatStore = create<ChatStoreState>()(
           if (chatIndex === -1) return state;
           if (state.chats[chatIndex].synced) {
             for (const chat of state.chats) {
-              chat.attachments = chat.attachments.filter((a) => a.name !== attachment.name);
+              chat.attachments = chat.attachments.filter(
+                (a) => a.name !== attachment.name
+              );
             }
           } else {
-            state.chats[chatIndex].attachments = state.chats[chatIndex].attachments.filter(
-              (a) => a.name !== attachment.name,
-            );
+            state.chats[chatIndex].attachments = state.chats[
+              chatIndex
+            ].attachments.filter((a) => a.name !== attachment.name);
           }
         });
       },
@@ -212,7 +225,7 @@ export const useChatStore = create<ChatStoreState>()(
         set((state) => {
           const chatIndex = state.chats.findIndex((chat) => chat.id === id);
           if (chatIndex === -1) return state;
-          state.chats[chatIndex].input = "";
+          state.chats[chatIndex].input = '';
           state.chats[chatIndex].attachments = [];
         });
       },
@@ -229,13 +242,13 @@ export const useChatStore = create<ChatStoreState>()(
         set((state) => {
           const chatIndex = state.chats.findIndex((chat) => chat.id === id);
           if (chatIndex === -1) return state;
-          // @ts-ignore
+          // @ts-expect-error
           state.chats[chatIndex].messages = messages;
         });
       },
     })),
     {
-      name: "chat-store",
+      name: 'chat-store',
       storage: createJSONStorage(() => localStorage),
       version: 2,
       // don't store messages or attachments in local storage
@@ -247,7 +260,7 @@ export const useChatStore = create<ChatStoreState>()(
             messages: [
               ...chat.messages.map((m) => ({
                 ...m,
-                data: m.role === "assistant" ? m.data : {},
+                data: m.role === 'assistant' ? m.data : {},
               })),
             ],
           })),
@@ -258,7 +271,7 @@ export const useChatStore = create<ChatStoreState>()(
           state.chats.push({
             id: nanoid(),
             model: textModels[0],
-            input: "",
+            input: '',
             attachments: [],
             synced: true,
             messages: [],
@@ -267,14 +280,20 @@ export const useChatStore = create<ChatStoreState>()(
         }
 
         // handles legacy state
-        state?.chats.forEach((chat, idx) => {
-          if (Array.isArray(chat.model.config) || chat.model.systemPromptSupport === undefined) {
-            state.setChatModel(chat.id, textModels.find((m) => m.id === chat.model.id) ?? textModels[0]);
+        state?.chats.forEach((chat, _idx) => {
+          if (
+            Array.isArray(chat.model.config) ||
+            chat.model.systemPromptSupport === undefined
+          ) {
+            state.setChatModel(
+              chat.id,
+              textModels.find((m) => m.id === chat.model.id) ?? textModels[0]
+            );
           }
         });
       },
-    },
-  ),
+    }
+  )
 );
 
 export const useChatStoreHydrated = () => {
@@ -283,9 +302,13 @@ export const useChatStoreHydrated = () => {
   useEffect(() => {
     // Note: This is just in case you want to take into account manual rehydration.
     // You can remove the following line if you don't need it.
-    const unsubHydrate = useChatStore.persist.onHydrate(() => setHydrated(false));
+    const unsubHydrate = useChatStore.persist.onHydrate(() =>
+      setHydrated(false)
+    );
 
-    const unsubFinishHydration = useChatStore.persist.onFinishHydration(() => setHydrated(true));
+    const unsubFinishHydration = useChatStore.persist.onFinishHydration(() =>
+      setHydrated(true)
+    );
 
     setHydrated(useChatStore.persist.hasHydrated());
 

@@ -1,14 +1,20 @@
-import { ConfigValue } from "@/lib/model/model-config.type";
-import { ImageModel, VideoModel } from "@/lib/model/model.type";
-import { TooltipArrow } from "@radix-ui/react-tooltip";
-import { Info, SlidersHorizontalIcon } from "lucide-react";
-import { useState } from "react";
-import { Button } from "./ui/button";
-import { Input } from "./ui/input";
-import { Label } from "./ui/label";
-import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
-import { Tooltip, TooltipContent, TooltipTrigger } from "./ui/tooltip";
+import { TooltipArrow } from '@radix-ui/react-tooltip';
+import { Info, SlidersHorizontalIcon } from 'lucide-react';
+import { useState } from 'react';
+import type { ImageModel, VideoModel } from '@/lib/model/model.type';
+import type { ConfigValue } from '@/lib/model/model-config.type';
+import { Button } from './ui/button';
+import { Input } from './ui/input';
+import { Label } from './ui/label';
+import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from './ui/select';
+import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
 
 type ConfigValueInputProps = {
   model: ImageModel | VideoModel;
@@ -17,10 +23,18 @@ type ConfigValueInputProps = {
   onEnter: () => void;
 };
 
-const ConfigValueInput = ({ setting, model, setModel, onEnter }: ConfigValueInputProps) => {
+const ConfigValueInput = ({
+  setting,
+  model,
+  setModel,
+  onEnter,
+}: ConfigValueInputProps) => {
   return (
-    <div key={setting.name} className="flex flex-col gap-1">
-      <Label htmlFor={setting.name} className="flex items-center gap-2 text-nowrap text-xs">
+    <div className="flex flex-col gap-1" key={setting.name}>
+      <Label
+        className="flex items-center gap-2 text-nowrap text-xs"
+        htmlFor={setting.name}
+      >
         {setting.label}
         {setting.description && (
           <Tooltip delayDuration={0}>
@@ -33,15 +47,17 @@ const ConfigValueInput = ({ setting, model, setModel, onEnter }: ConfigValueInpu
           </Tooltip>
         )}
       </Label>
-      {setting.type === "enum" ? (
+      {setting.type === 'enum' ? (
         <Select
-          value={setting.value}
           onValueChange={(value) => {
             setModel({
               ...model,
-              config: model.config?.map((s) => (s.name === setting.name ? ({ ...s, value: value } as ConfigValue) : s)),
+              config: model.config?.map((s) =>
+                s.name === setting.name ? ({ ...s, value } as ConfigValue) : s
+              ),
             });
           }}
+          value={setting.value}
         >
           <SelectTrigger className="focus:ring-transparent">
             <SelectValue placeholder="Select..." />
@@ -57,28 +73,30 @@ const ConfigValueInput = ({ setting, model, setModel, onEnter }: ConfigValueInpu
       ) : (
         <>
           <Input
-            type="text"
-            id={setting.name}
             className="focus-visible:ring-transparent"
-            value={setting.value}
-            min={setting.type === "number" ? setting.min : undefined}
-            max={setting.type === "number" ? setting.max : undefined}
+            id={setting.name}
+            max={setting.type === 'number' ? setting.max : undefined}
+            min={setting.type === 'number' ? setting.min : undefined}
             onChange={(e) => {
               setModel({
                 ...model,
                 config: model.config?.map((s) =>
-                  s.name === setting.name ? ({ ...s, value: e.target.value } as ConfigValue) : s,
+                  s.name === setting.name
+                    ? ({ ...s, value: e.target.value } as ConfigValue)
+                    : s
                 ),
               });
             }}
             onKeyDown={(e) => {
-              if (e.key === "Enter") {
+              if (e.key === 'Enter') {
                 onEnter();
               }
             }}
+            type="text"
+            value={setting.value}
           />
-          {setting.type === "number" && (
-            <p className="mr-2 text-right text-[0.65rem] font-light text-muted-foreground">
+          {setting.type === 'number' && (
+            <p className="mr-2 text-right font-light text-[0.65rem] text-muted-foreground">
               {setting.min} - {setting.max}
             </p>
           )}
@@ -93,20 +111,23 @@ type ModelConfigButtonProps = {
   setModel: (model: ImageModel | VideoModel) => void;
 };
 
-export const ModelConfigButton = ({ model, setModel }: ModelConfigButtonProps) => {
+export const ModelConfigButton = ({
+  model,
+  setModel,
+}: ModelConfigButtonProps) => {
   const [open, setOpen] = useState(false);
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
+    <Popover onOpenChange={setOpen} open={open}>
       <Tooltip>
         <PopoverTrigger asChild>
           <TooltipTrigger asChild tabIndex={-1}>
-            <Button variant="ghost" size="xsicon" title="Model settings">
+            <Button size="xsicon" title="Model settings" variant="ghost">
               <SlidersHorizontalIcon className="h-5 w-5" />
             </Button>
           </TooltipTrigger>
         </PopoverTrigger>
-        <TooltipContent side="bottom" className="text-xs">
+        <TooltipContent className="text-xs" side="bottom">
           Configure inference parameters
           <TooltipArrow />
         </TooltipContent>
@@ -117,9 +138,9 @@ export const ModelConfigButton = ({ model, setModel }: ModelConfigButtonProps) =
             <ConfigValueInput
               key={setting.name}
               model={model}
-              setting={setting}
-              setModel={setModel}
               onEnter={() => setOpen(false)}
+              setModel={setModel}
+              setting={setting}
             />
           ))}
         </div>

@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import { RtcStatus } from "@/hooks/use-rtc-session";
-import { motion } from "framer-motion";
+import { motion } from 'framer-motion';
+import type { RtcStatus } from '@/hooks/use-rtc-session';
 
 interface ListeningAnimationProps {
   isListening: boolean;
@@ -9,8 +9,20 @@ interface ListeningAnimationProps {
   onClick: () => void;
 }
 
-export default function ListeningAnimation({ isListening, status, onClick }: ListeningAnimationProps) {
-  const buttonText = status === "connected" ? "Stop" : status === "disconnected" ? "Start" : "Connecting...";
+export default function ListeningAnimation({
+  isListening,
+  status,
+  onClick,
+}: ListeningAnimationProps) {
+  const buttonText = (() => {
+    if (status === 'connected') {
+      return 'Stop';
+    }
+    if (status === 'disconnected') {
+      return 'Start';
+    }
+    return 'Connecting...';
+  })();
 
   return (
     <motion.button
@@ -20,25 +32,25 @@ export default function ListeningAnimation({ isListening, status, onClick }: Lis
       whileTap={{ scale: 0.95 }}
     >
       <motion.div
-        className="absolute inset-0 rounded-full bg-green-500 opacity-75"
         animate={{
           scale: isListening ? [1, 1.2, 1] : 1,
         }}
+        className="absolute inset-0 rounded-full bg-green-500 opacity-75"
         transition={{
           duration: 1.5,
-          repeat: isListening ? Infinity : 0,
-          repeatType: "loop",
+          repeat: isListening ? Number.POSITIVE_INFINITY : 0,
+          repeatType: 'loop',
         }}
       />
       <motion.div
-        className="absolute inset-0 flex items-center justify-center rounded-full bg-green-300"
         animate={{
           scale: isListening ? [1, 1.1, 1] : 1,
         }}
+        className="absolute inset-0 flex items-center justify-center rounded-full bg-green-300"
         transition={{
           duration: 1.5,
-          repeat: isListening ? Infinity : 0,
-          repeatType: "loop",
+          repeat: isListening ? Number.POSITIVE_INFINITY : 0,
+          repeatType: 'loop',
           delay: 0.2,
         }}
       >

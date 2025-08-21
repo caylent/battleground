@@ -1,9 +1,9 @@
-import { usePrompt, useSavePrompt, useUpdatePrompt } from "@/hooks/use-prompt";
-import { useUser } from "@clerk/nextjs";
-import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
-import { toast } from "sonner";
-import { Button } from "./ui/button";
+import { useUser } from '@clerk/nextjs';
+import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
+import { toast } from 'sonner';
+import { usePrompt, useSavePrompt, useUpdatePrompt } from '@/hooks/use-prompt';
+import { Button } from './ui/button';
 import {
   Dialog,
   DialogClose,
@@ -12,10 +12,10 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "./ui/dialog";
-import { Input } from "./ui/input";
-import { Label } from "./ui/label";
-import { Textarea } from "./ui/textarea";
+} from './ui/dialog';
+import { Input } from './ui/input';
+import { Label } from './ui/label';
+import { Textarea } from './ui/textarea';
 
 type PromptEditDialogProps = {
   promptId?: string;
@@ -24,80 +24,91 @@ type PromptEditDialogProps = {
   onOpenChange: (open: boolean) => void;
 };
 
-export const PromptEditDialog = ({ promptId, promptText, open, onOpenChange }: PromptEditDialogProps) => {
+export const PromptEditDialog = ({
+  promptId,
+  promptText,
+  open,
+  onOpenChange,
+}: PromptEditDialogProps) => {
   const router = useRouter();
   const { user } = useUser();
-  const [name, setName] = useState("");
-  const [description, setDescription] = useState("");
+  const [name, setName] = useState('');
+  const [description, setDescription] = useState('');
 
   const { data: prompt } = usePrompt({ id: promptId });
 
   useEffect(() => {
     if (!prompt) return;
-    setName(prompt.name ?? "");
-    setDescription(prompt.description ?? "");
+    setName(prompt.name ?? '');
+    setDescription(prompt.description ?? '');
   }, [prompt]);
 
   const savePrompt = useSavePrompt({
     onSuccess: (data) => {
       router.replace(`/prompt/${data.id}?mode=edit`);
-      toast.success("Prompt created");
+      toast.success('Prompt created');
     },
     onError: (error) => toast.error(error.message),
   });
 
   const updatePrompt = useUpdatePrompt({
-    onSuccess: () => toast.success("Prompt updated"),
+    onSuccess: () => toast.success('Prompt updated'),
     onError: (error) => toast.error(error.message),
   });
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog onOpenChange={onOpenChange} open={open}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>Edit Prompt Details</DialogTitle>
-          <DialogDescription>Update the name, description, and scope of your prompt.</DialogDescription>
+          <DialogDescription>
+            Update the name, description, and scope of your prompt.
+          </DialogDescription>
         </DialogHeader>
         <div className="flex flex-col gap-4">
           <Label htmlFor="name">Name</Label>
-          <Input id="name" value={name} onChange={(e) => setName(e.target.value)} />
+          <Input
+            id="name"
+            onChange={(e) => setName(e.target.value)}
+            value={name}
+          />
           <Label htmlFor="description">Description</Label>
           <Textarea
-            id="description"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
             className="resize-none"
+            id="description"
+            onChange={(e) => setDescription(e.target.value)}
             rows={2}
+            value={description}
           />
         </div>
         <DialogFooter>
           <DialogClose asChild>
-            <Button variant="ghost" size="sm">
+            <Button size="sm" variant="ghost">
               Cancel
             </Button>
           </DialogClose>
           <DialogClose asChild>
             <Button
-              variant="default"
-              size="sm"
               onClick={() => {
                 if (promptId) {
                   updatePrompt.mutate({
                     id: promptId,
                     name,
                     description,
-                    prompt: promptText ?? "",
+                    prompt: promptText ?? '',
                     user: user?.primaryEmailAddress?.emailAddress,
                   });
                 } else {
                   savePrompt.mutate({
                     name,
                     description,
-                    prompt: promptText ?? "",
+                    prompt: promptText ?? '',
                     user: user?.primaryEmailAddress?.emailAddress,
                   });
                 }
               }}
+              size="sm"
+              variant="default"
             >
               Save
             </Button>

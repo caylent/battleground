@@ -1,11 +1,23 @@
-import { useChatStore } from "@/stores/chat-store";
-import { ResponseMetrics } from "@/types/response-metrics.type";
-import { LineChart } from "lucide-react";
-import { CartesianGrid, Scatter, ScatterChart, XAxis, YAxis, ZAxis } from "recharts";
-import colors from "tailwindcss/colors";
-import { Button } from "./ui/button";
-import { ChartContainer, ChartLegend, ChartTooltip, ChartTooltipContent } from "./ui/chart";
-import { HoverCard, HoverCardContent, HoverCardTrigger } from "./ui/hover-card";
+import { LineChart } from 'lucide-react';
+import {
+  CartesianGrid,
+  Scatter,
+  ScatterChart,
+  XAxis,
+  YAxis,
+  ZAxis,
+} from 'recharts';
+import colors from 'tailwindcss/colors';
+import { useChatStore } from '@/stores/chat-store';
+import type { ResponseMetrics } from '@/types/response-metrics.type';
+import { Button } from './ui/button';
+import {
+  ChartContainer,
+  ChartLegend,
+  ChartTooltip,
+  ChartTooltipContent,
+} from './ui/chart';
+import { HoverCard, HoverCardContent, HoverCardTrigger } from './ui/hover-card';
 
 const dotColors = [
   colors.blue[500],
@@ -31,7 +43,10 @@ export const MetricsChartPopoverButton = () => {
   const chats = useChatStore((state) => state.chats);
 
   const chartData = chats.map((chat) => {
-    const assistantMessages = chat.messages?.filter((m) => m.role === "assistant" && m.annotations?.length) ?? [];
+    const assistantMessages =
+      chat.messages?.filter(
+        (m) => m.role === 'assistant' && m.annotations?.length
+      ) ?? [];
 
     const metricsData = assistantMessages
       .map((m) => m.annotations?.[0] as ResponseMetrics)
@@ -43,62 +58,99 @@ export const MetricsChartPopoverButton = () => {
             inputTokens: m?.inputTokens ?? 0,
             outputTokens: m?.outputTokens ?? 0,
             responseTime: m?.responseTime ?? 0,
-          }) satisfies Required<ResponseMetrics>,
+          }) satisfies Required<ResponseMetrics>
       );
 
     const totalCost = metricsData.reduce((acc, curr) => acc + curr.cost, 0);
     const avgTokensPerSecond = metricsData.reduce(
-      (acc, curr) => acc + curr.outputTokens / ((curr.responseTime - curr.firstTokenTime) / 1000) / metricsData.length,
-      0,
+      (acc, curr) =>
+        acc +
+        curr.outputTokens /
+          ((curr.responseTime - curr.firstTokenTime) / 1000) /
+          metricsData.length,
+      0
     );
 
     return {
       name: chat.model.name,
       cost: totalCost,
       tokensPerSecond: avgTokensPerSecond,
-      totalTokens: metricsData.reduce((acc, curr) => acc + curr.outputTokens, 0),
+      totalTokens: metricsData.reduce(
+        (acc, curr) => acc + curr.outputTokens,
+        0
+      ),
     } satisfies MetricsChartData;
   });
 
-  const zDomain = [Math.min(...chartData.map((m) => m.totalTokens)), Math.max(...chartData.map((m) => m.totalTokens))];
+  const zDomain = [
+    Math.min(...chartData.map((m) => m.totalTokens)),
+    Math.max(...chartData.map((m) => m.totalTokens)),
+  ];
 
   return (
-    <HoverCard openDelay={0} closeDelay={0}>
+    <HoverCard closeDelay={0} openDelay={0}>
       <HoverCardTrigger asChild>
-        <Button variant="ghost" size="icon">
+        <Button size="icon" variant="ghost">
           <LineChart className="size-4" />
         </Button>
       </HoverCardTrigger>
       <HoverCardContent className="h-[500px] w-[500px]">
         <div className="flex h-[500px] w-[500px] flex-col p-2">
           <div className="mt-4 flex items-center justify-center">
-            <h1 className="text-xl font-semibold">Model Comparison</h1>
+            <h1 className="font-semibold text-xl">Model Comparison</h1>
           </div>
-          <ChartContainer config={{ default: {} }} className="h-full w-full flex-1 p-4">
+          <ChartContainer
+            className="h-full w-full flex-1 p-4"
+            config={{ default: {} }}
+          >
             <ScatterChart accessibilityLayer margin={{ right: 16, top: 16 }}>
               {/* <ReferenceArea x1={0} x2={0.0001} y1={0} y2={100} fill={colors.green[100]} /> */}
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis
-                type="number"
                 dataKey="cost"
-                name="Cost"
                 interval={0}
-                label={{ value: "Cost ($)", position: "insideBottom", offset: -16 }}
+                label={{
+                  value: 'Cost ($)',
+                  position: 'insideBottom',
+                  offset: -16,
+                }}
+                name="Cost"
                 tickMargin={8}
-              />
-              <YAxis type="number" dataKey="tokensPerSecond" name="Speed" unit=" t/s" width={48} />
-              <ZAxis
                 type="number"
+              />
+              <YAxis
+                dataKey="tokensPerSecond"
+                name="Speed"
+                type="number"
+                unit=" t/s"
+                width={48}
+              />
+              <ZAxis
                 dataKey="totalTokens"
-                name="Total Tokens"
                 domain={zDomain}
+                name="Total Tokens"
                 range={[40, 200]}
                 scale="linear"
+                type="number"
               />
-              <ChartLegend wrapperStyle={{ paddingTop: 32, paddingLeft: 32, paddingBottom: 8 }} />
-              <ChartTooltip content={<ChartTooltipContent indicator="dot" />} cursor={{ strokeDasharray: "3 3" }} />
+              <ChartLegend
+                wrapperStyle={{
+                  paddingTop: 32,
+                  paddingLeft: 32,
+                  paddingBottom: 8,
+                }}
+              />
+              <ChartTooltip
+                content={<ChartTooltipContent indicator="dot" />}
+                cursor={{ strokeDasharray: '3 3' }}
+              />
               {chartData.map((entry, idx) => (
-                <Scatter key={entry.name} name={entry.name} data={[entry]} fill={dotColors[idx]} />
+                <Scatter
+                  data={[entry]}
+                  fill={dotColors[idx]}
+                  key={entry.name}
+                  name={entry.name}
+                />
               ))}
             </ScatterChart>
           </ChartContainer>

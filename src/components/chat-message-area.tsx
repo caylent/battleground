@@ -1,11 +1,11 @@
-import { Button } from "@/components/ui/button";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { useScrollToBottom } from "@/hooks/use-scroll-to-bottom";
-import { cn } from "@/lib/utils";
-import { ChevronDown } from "lucide-react";
-import type { ReactNode } from "react";
+import { ChevronDown } from 'lucide-react';
+import type { ReactNode } from 'react';
+import { Button } from '@/components/ui/button';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { useScrollToBottom } from '@/hooks/use-scroll-to-bottom';
+import { cn } from '@/lib/utils';
 
-type ScrollButtonAlignment = "left" | "center" | "right";
+type ScrollButtonAlignment = 'left' | 'center' | 'right';
 
 interface ScrollButtonProps {
   onClick: () => void;
@@ -13,23 +13,27 @@ interface ScrollButtonProps {
   className?: string;
 }
 
-export function ScrollButton({ onClick, alignment = "right", className }: ScrollButtonProps) {
+export function ScrollButton({
+  onClick,
+  alignment = 'right',
+  className,
+}: ScrollButtonProps) {
   const alignmentClasses = {
-    left: "left-4",
-    center: "left-1/2 -translate-x-1/2",
-    right: "right-4",
+    left: 'left-4',
+    center: 'left-1/2 -translate-x-1/2',
+    right: 'right-4',
   };
 
   return (
     <Button
-      variant="secondary"
-      size="icon"
       className={cn(
-        "absolute bottom-4 rounded-full shadow-lg hover:bg-secondary",
+        'absolute bottom-4 rounded-full shadow-lg hover:bg-secondary',
         alignmentClasses[alignment],
-        className,
+        className
       )}
       onClick={onClick}
+      size="icon"
+      variant="secondary"
     >
       <ChevronDown className="h-4 w-4" />
     </Button>
@@ -42,23 +46,28 @@ interface ChatMessageAreaProps {
   scrollButtonAlignment?: ScrollButtonAlignment;
 }
 
-export function ChatMessageArea({ children, className, scrollButtonAlignment = "right" }: ChatMessageAreaProps) {
-  const [containerRef, showScrollButton, scrollToBottom] = useScrollToBottom<HTMLDivElement>();
+export function ChatMessageArea({
+  children,
+  className,
+  scrollButtonAlignment = 'right',
+}: ChatMessageAreaProps) {
+  const [containerRef, showScrollButton, scrollToBottom] =
+    useScrollToBottom<HTMLDivElement>();
 
   return (
     <ScrollArea className="relative flex-1">
       <div ref={containerRef}>
-        <div className={cn(className, "min-h-0")}>{children}</div>
+        <div className={cn(className, 'min-h-0')}>{children}</div>
       </div>
       {showScrollButton && (
         <ScrollButton
-          onClick={scrollToBottom}
           alignment={scrollButtonAlignment}
           className="absolute bottom-4 rounded-full shadow-lg hover:bg-secondary"
+          onClick={scrollToBottom}
         />
       )}
     </ScrollArea>
   );
 }
 
-ChatMessageArea.displayName = "ChatMessageArea";
+ChatMessageArea.displayName = 'ChatMessageArea';

@@ -1,16 +1,23 @@
-"use client";
+'use client';
 
-import { Button } from "@/components/ui/button";
-import { Settings } from "lucide-react";
-import { useLocalStorage } from "usehooks-ts";
-import { Label } from "./ui/label";
-import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
-import { Tooltip, TooltipContent, TooltipTrigger } from "./ui/tooltip";
+import { Settings } from 'lucide-react';
+import { useLocalStorage } from 'usehooks-ts';
+import { Button } from '@/components/ui/button';
+import { Label } from './ui/label';
+import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from './ui/select';
+import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
 
-export const usePollyVoice = () => useLocalStorage("polly-voice-id", "Ruth", { initializeWithValue: false });
+export const usePollyVoice = () =>
+  useLocalStorage('polly-voice-id', 'Ruth', { initializeWithValue: false });
 
-const PollyVoices = ["Ruth", "Matthew", "Amy"];
+const PollyVoices = ['Ruth', 'Matthew', 'Amy'];
 
 export function SettingsButton() {
   const [pollyVoice, setPollyVoice] = usePollyVoice();
@@ -20,7 +27,11 @@ export function SettingsButton() {
       <Tooltip>
         <TooltipTrigger asChild>
           <PopoverTrigger asChild>
-            <Button variant="ghost" size="xsicon">
+            <Button
+              className="size-8 hover:text-primary"
+              size="icon"
+              variant="ghost"
+            >
               <Settings className="size-4" />
               <span className="sr-only">Open Settings</span>
             </Button>
@@ -33,11 +44,19 @@ export function SettingsButton() {
       <PopoverContent align="start" side="right">
         <div className="flex flex-col gap-1">
           <div className="text flex flex-col gap-1">
-            <Label htmlFor="polly-voice-id" className="flex items-center gap-2 text-nowrap text-xs">
+            <Label
+              className="flex items-center gap-2 text-nowrap text-xs"
+              htmlFor="polly-voice-id"
+            >
               Polly Voice
             </Label>
           </div>
-          <Select name="polly-voice-id" value={pollyVoice} defaultValue="Joanna" onValueChange={setPollyVoice}>
+          <Select
+            defaultValue="Joanna"
+            name="polly-voice-id"
+            onValueChange={setPollyVoice}
+            value={pollyVoice}
+          >
             <SelectTrigger className="focus:ring-transparent">
               <SelectValue placeholder="Select Voice..." />
             </SelectTrigger>

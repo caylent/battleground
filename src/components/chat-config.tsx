@@ -1,17 +1,27 @@
-"use client";
+'use client';
 
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Slider } from "@/components/ui/slider";
-import { Textarea } from "@/components/ui/textarea";
-import { TextModel } from "@/lib/model/model.type";
-import { ChatParams } from "@/stores/chat-store";
-import { TooltipArrow } from "@radix-ui/react-tooltip";
-import { ClipboardPaste, SlidersHorizontalIcon } from "lucide-react";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
-import { Tooltip, TooltipContent, TooltipTrigger } from "./ui/tooltip";
+import { TooltipArrow } from '@radix-ui/react-tooltip';
+import { ClipboardPaste, SlidersHorizontalIcon } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
+import { Slider } from '@/components/ui/slider';
+import { Textarea } from '@/components/ui/textarea';
+import type { TextModel } from '@/lib/model/model.type';
+import type { ChatParams } from '@/stores/chat-store';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from './ui/select';
+import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
 
 export function ChatConfig({
   model,
@@ -27,13 +37,13 @@ export function ChatConfig({
       <Tooltip>
         <PopoverTrigger asChild>
           <TooltipTrigger asChild tabIndex={-1}>
-            <Button variant="ghost" size="xsicon" title="Model settings">
+            <Button size="xsicon" title="Model settings" variant="ghost">
               <SlidersHorizontalIcon className="h-5 w-5" />
               <span className="sr-only">Open chat configuration</span>
             </Button>
           </TooltipTrigger>
         </PopoverTrigger>
-        <TooltipContent side="bottom" className="text-xs">
+        <TooltipContent className="text-xs" side="bottom">
           Configure chat parameters
           <TooltipArrow />
         </TooltipContent>
@@ -43,24 +53,29 @@ export function ChatConfig({
         <div className="grid gap-4">
           <div className="space-y-2">
             <h4 className="font-medium leading-none">Chat Configuration</h4>
-            <p className="text-sm text-muted-foreground">Adjust the parameters for the chat model.</p>
+            <p className="text-muted-foreground text-sm">
+              Adjust the parameters for the chat model.
+            </p>
           </div>
           <div className="grid gap-2">
-            <Label htmlFor="systemPrompt" className="mb-2 flex items-center justify-between">
+            <Label
+              className="mb-2 flex items-center justify-between"
+              htmlFor="systemPrompt"
+            >
               System Prompt
               {onSynchronizeSystemPrompt && (
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Button
-                      variant="ghost"
-                      size="xsicon"
                       disabled={!model.systemPromptSupport}
                       onClick={onSynchronizeSystemPrompt}
+                      size="xsicon"
+                      variant="ghost"
                     >
                       <ClipboardPaste className="size-4" />
                     </Button>
                   </TooltipTrigger>
-                  <TooltipContent side="bottom" className="text-xs">
+                  <TooltipContent className="text-xs" side="bottom">
                     Synchronize System Prompt
                   </TooltipContent>
                 </Tooltip>
@@ -68,34 +83,40 @@ export function ChatConfig({
             </Label>
             <Textarea
               autoFocus
-              id="systemPrompt"
               disabled={!model.systemPromptSupport}
+              id="systemPrompt"
+              onChange={(e) => onConfigChange({ systemPrompt: e.target.value })}
               placeholder={
-                model.systemPromptSupport ? "Enter system prompt..." : "System prompt not supported for this model"
+                model.systemPromptSupport
+                  ? 'Enter system prompt...'
+                  : 'System prompt not supported for this model'
               }
               value={model.config.systemPrompt}
-              onChange={(e) => onConfigChange({ systemPrompt: e.target.value })}
             />
           </div>
           <div className="grid gap-2">
             <Label htmlFor="maxTokens">Max Tokens</Label>
             <div className="flex items-center gap-2">
               <Slider
+                className="flex-grow"
                 id="maxTokens"
-                min={model.config.maxTokens.min}
                 max={model.config.maxTokens.max}
+                min={model.config.maxTokens.min}
+                onValueChange={(value) =>
+                  onConfigChange({ maxTokens: value[0] })
+                }
                 step={1}
                 value={[model.config.maxTokens.value]}
-                onValueChange={(value) => onConfigChange({ maxTokens: value[0] })}
-                className="flex-grow"
               />
               <Input
+                className="w-28"
+                max={2048}
+                min={0}
+                onChange={(e) =>
+                  onConfigChange({ maxTokens: Number(e.target.value) })
+                }
                 type="number"
                 value={model.config.maxTokens.value}
-                onChange={(e) => onConfigChange({ maxTokens: Number(e.target.value) })}
-                className="w-28"
-                min={0}
-                max={2048}
               />
             </div>
           </div>
@@ -103,22 +124,26 @@ export function ChatConfig({
             <Label htmlFor="temperature">Temperature</Label>
             <div className="flex items-center gap-2">
               <Slider
+                className="flex-grow"
                 id="temperature"
-                min={model.config.temperature.min}
                 max={model.config.temperature.max}
+                min={model.config.temperature.min}
+                onValueChange={(value) =>
+                  onConfigChange({ temperature: value[0] })
+                }
                 step={0.01}
                 value={[model.config.temperature.value]}
-                onValueChange={(value) => onConfigChange({ temperature: value[0] })}
-                className="flex-grow"
               />
               <Input
+                className="w-28"
+                max={2}
+                min={0}
+                onChange={(e) =>
+                  onConfigChange({ temperature: Number(e.target.value) })
+                }
+                step={0.01}
                 type="number"
                 value={model.config.temperature.value.toFixed(2)}
-                onChange={(e) => onConfigChange({ temperature: Number(e.target.value) })}
-                className="w-28"
-                min={0}
-                max={2}
-                step={0.01}
               />
             </div>
           </div>
@@ -126,90 +151,96 @@ export function ChatConfig({
             <Label htmlFor="topP">Top P</Label>
             <div className="flex items-center gap-2">
               <Slider
+                className="flex-grow"
                 id="topP"
-                min={model.config.topP.min}
                 max={model.config.topP.max}
+                min={model.config.topP.min}
+                onValueChange={(value) => onConfigChange({ topP: value[0] })}
                 step={0.01}
                 value={[model.config.topP.value]}
-                onValueChange={(value) => onConfigChange({ topP: value[0] })}
-                className="flex-grow"
               />
               <Input
+                className="w-28"
+                max={1}
+                min={0}
+                onChange={(e) =>
+                  onConfigChange({ topP: Number(e.target.value) })
+                }
+                step={0.01}
                 type="number"
                 value={model.config.topP.value.toFixed(2)}
-                onChange={(e) => onConfigChange({ topP: Number(e.target.value) })}
-                className="w-28"
-                min={0}
-                max={1}
-                step={0.01}
               />
             </div>
           </div>
 
           {model.config.reasoning && (
-            <>
-              <div key="extended-thinking" className="grid gap-4">
-                <div className="flex flex-col gap-2">
-                  <Label>Extended Thinking</Label>
-                  <Select
-                    value={model.config.reasoning.enabled ? "enabled" : "disabled"}
-                    onValueChange={(value) =>
-                      onConfigChange({
-                        reasoning: {
-                          enabled: value === "enabled",
-                          budgetTokens: model.config.reasoning?.budgetTokens?.value || 1024,
-                        },
-                      })
-                    }
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select an option" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="enabled">Enabled</SelectItem>
-                      <SelectItem value="disabled">Disabled</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                {model.config.reasoning.enabled && (
-                  <div className="grid gap-2">
-                    <Label htmlFor="budgetTokens">Budget Tokens</Label>
-                    <div className="flex items-center gap-2">
-                      <Slider
-                        id="budgetTokens"
-                        min={model.config.reasoning?.budgetTokens?.min}
-                        max={model.config.reasoning?.budgetTokens?.max}
-                        step={1}
-                        value={[model.config.reasoning?.budgetTokens?.value]}
-                        onValueChange={(value) =>
-                          onConfigChange({
-                            reasoning: { budgetTokens: value[0], enabled: !!model.config.reasoning?.enabled },
-                          })
-                        }
-                        className="flex-grow"
-                      />
-                      <Input
-                        type="number"
-                        value={model.config.reasoning?.budgetTokens?.value}
-                        onChange={(e) =>
-                          onConfigChange({
-                            reasoning: {
-                              budgetTokens: Number(e.target.value),
-                              enabled: !!model.config.reasoning?.enabled,
-                            },
-                          })
-                        }
-                        className="w-28"
-                        min={model.config.reasoning?.budgetTokens?.min}
-                        max={model.config.reasoning?.budgetTokens?.max}
-                        step={1}
-                      />
-                    </div>
-                  </div>
-                )}
+            <div className="grid gap-4" key="extended-thinking">
+              <div className="flex flex-col gap-2">
+                <Label>Extended Thinking</Label>
+                <Select
+                  onValueChange={(value) =>
+                    onConfigChange({
+                      reasoning: {
+                        enabled: value === 'enabled',
+                        budgetTokens:
+                          model.config.reasoning?.budgetTokens?.value || 1024,
+                      },
+                    })
+                  }
+                  value={
+                    model.config.reasoning.enabled ? 'enabled' : 'disabled'
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select an option" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="enabled">Enabled</SelectItem>
+                    <SelectItem value="disabled">Disabled</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
-            </>
+
+              {model.config.reasoning.enabled && (
+                <div className="grid gap-2">
+                  <Label htmlFor="budgetTokens">Budget Tokens</Label>
+                  <div className="flex items-center gap-2">
+                    <Slider
+                      className="flex-grow"
+                      id="budgetTokens"
+                      max={model.config.reasoning?.budgetTokens?.max}
+                      min={model.config.reasoning?.budgetTokens?.min}
+                      onValueChange={(value) =>
+                        onConfigChange({
+                          reasoning: {
+                            budgetTokens: value[0],
+                            enabled: !!model.config.reasoning?.enabled,
+                          },
+                        })
+                      }
+                      step={1}
+                      value={[model.config.reasoning?.budgetTokens?.value]}
+                    />
+                    <Input
+                      className="w-28"
+                      max={model.config.reasoning?.budgetTokens?.max}
+                      min={model.config.reasoning?.budgetTokens?.min}
+                      onChange={(e) =>
+                        onConfigChange({
+                          reasoning: {
+                            budgetTokens: Number(e.target.value),
+                            enabled: !!model.config.reasoning?.enabled,
+                          },
+                        })
+                      }
+                      step={1}
+                      type="number"
+                      value={model.config.reasoning?.budgetTokens?.value}
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
           )}
         </div>
       </PopoverContent>

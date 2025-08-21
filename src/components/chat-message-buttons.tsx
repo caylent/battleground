@@ -1,12 +1,12 @@
-"use client";
+'use client';
 
-import { Copy, Loader, Pause, PlayIcon } from "lucide-react";
-import { useEffect, useState } from "react";
-import { toast } from "sonner";
-import { useCopyToClipboard } from "usehooks-ts";
-import { usePollyVoice } from "./settings-button";
-import { Button } from "./ui/button";
-import { Tooltip, TooltipContent, TooltipTrigger } from "./ui/tooltip";
+import { Copy, Loader, Pause, PlayIcon } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { toast } from 'sonner';
+import { useCopyToClipboard } from 'usehooks-ts';
+import { usePollyVoice } from './settings-button';
+import { Button } from './ui/button';
+import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
 
 export const ChatMessageButtons = ({ message }: { message: string }) => {
   const [audioLoading, setAudioLoading] = useState(false);
@@ -18,7 +18,7 @@ export const ChatMessageButtons = ({ message }: { message: string }) => {
   useEffect(() => {
     if (message.length === 0) return;
     setRefetchAudio(true);
-  }, [message, pollyVoice]);
+  }, [message]);
 
   useEffect(() => {
     setAudio(new Audio());
@@ -34,13 +34,13 @@ export const ChatMessageButtons = ({ message }: { message: string }) => {
       return;
     }
 
-    var content = message;
+    const content = message;
 
     setAudioLoading(true);
 
     // request the audio stream from the server
-    fetch("/api/audio", {
-      method: "POST",
+    fetch('/api/audio', {
+      method: 'POST',
       body: JSON.stringify({
         voiceId: pollyVoice,
         message: content,
@@ -48,14 +48,16 @@ export const ChatMessageButtons = ({ message }: { message: string }) => {
     })
       .then(async (res) => {
         const data = await res.arrayBuffer();
-        const blob = new Blob([data], { type: "audio/mpeg" });
+        const blob = new Blob([data], { type: 'audio/mpeg' });
         audio.src = URL.createObjectURL(blob);
         audio.load();
         audio.play();
       })
       .catch((err: Error) => {
-        const { message } = JSON.parse(err.message);
-        toast.error(message);
+        const { message: errorMessage } = JSON.parse(err.message) as {
+          message: string;
+        };
+        toast.error(errorMessage);
       })
       .finally(() => {
         setAudioLoading(false);
@@ -68,56 +70,60 @@ export const ChatMessageButtons = ({ message }: { message: string }) => {
       <Tooltip>
         <TooltipTrigger asChild>
           <Button
-            variant="ghost"
-            size="xsicon"
+            className="h-6 w-6"
+            disabled={message.length === 0}
             onClick={() => {
               copyToClipboard(message);
-              toast.success("Copied to clipboard");
+              toast.success('Copied to clipboard');
             }}
-            disabled={message.length === 0}
-            className="h-6 w-6"
+            size="xsicon"
+            variant="ghost"
           >
             <Copy className="size-4" />
           </Button>
         </TooltipTrigger>
-        <TooltipContent side="bottom" className="text-xs">
+        <TooltipContent className="text-xs" side="bottom">
           Copy message
         </TooltipContent>
       </Tooltip>
       <Tooltip>
         <TooltipTrigger asChild>
           <Button
-            variant="ghost"
-            size="xsicon"
-            onClick={playAudio}
-            disabled={message.length === 0 || !audio || audioLoading}
             className="h-6 w-6"
+            disabled={message.length === 0 || !audio || audioLoading}
+            onClick={playAudio}
+            size="xsicon"
+            variant="ghost"
           >
-            {audioLoading ? <Loader className="size-4 animate-spin" /> : <PlayIcon className="size-4" />}
+            {audioLoading ? (
+              <Loader className="size-4 animate-spin" />
+            ) : (
+              <PlayIcon className="size-4" />
+            )}
           </Button>
         </TooltipTrigger>
-        <TooltipContent side="bottom" className="text-xs">
+        <TooltipContent className="text-xs" side="bottom">
           Play audio
         </TooltipContent>
       </Tooltip>
       <Tooltip>
         <TooltipTrigger asChild>
           <Button
-            variant="ghost"
-            size="xsicon"
+            className="h-6 w-6"
+            disabled={message.length === 0 || !audio}
             onClick={() => {
               if (audio) {
                 audio.pause();
                 audio.currentTime = 0;
               }
             }}
-            disabled={message.length === 0 || !audio}
-            className="h-6 w-6"
+            size="xsicon"
+            variant="ghost"
           >
             <Pause className="size-4" />
           </Button>
         </TooltipTrigger>
-        <TooltipContent side="bottom" className="text-xs">
+        <TooltipContent className="text-xs" side="bottom">
           Pause audio
         </TooltipContent>
       </Tooltip>

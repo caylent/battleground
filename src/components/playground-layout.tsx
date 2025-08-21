@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import { AppSidebar } from "./app-sidebar";
-import { SidebarProvider } from "./ui/sidebar";
+import { AppSidebar } from './app-sidebar';
+import { SidebarProvider } from './ui/sidebar';
 
 export function PlaygroundLayout({ children }: { children: React.ReactNode }) {
   // const pathname = usePathname();
@@ -12,7 +12,7 @@ export function PlaygroundLayout({ children }: { children: React.ReactNode }) {
   //   .map((crumb) => crumb.charAt(0).toUpperCase() + crumb.slice(1).toLowerCase());
 
   return (
-    <SidebarProvider open={false} defaultOpen={false}>
+    <SidebarProvider defaultOpen={false} open={false}>
       <AppSidebar variant="sidebar" />
       {/* <header className="sticky top-0 flex h-14 shrink-0 flex-row items-center justify-between gap-2 border-b bg-background p-4">
           <Breadcrumb>

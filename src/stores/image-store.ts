@@ -1,14 +1,17 @@
-import { ImageModel } from "@/lib/model/model.type";
-import { imageModels } from "@/lib/model/models";
-import { ImageData } from "@/types/image-data.type";
-import { PromptSummary } from "@aws-sdk/client-bedrock-agent";
-import { nanoid } from "nanoid";
-import { useEffect, useState } from "react";
-import { create } from "zustand";
-import { createJSONStorage, persist } from "zustand/middleware";
-import { immer } from "zustand/middleware/immer";
+import type { PromptSummary } from '@aws-sdk/client-bedrock-agent';
+import { nanoid } from 'nanoid';
+import { useEffect, useState } from 'react';
+import { create } from 'zustand';
+import { createJSONStorage, persist } from 'zustand/middleware';
+import { immer } from 'zustand/middleware/immer';
+import type { ImageModel } from '@/lib/model/model.type';
+import { imageModels } from '@/lib/model/models';
+import type { ImageData } from '@/types/image-data.type';
 
-export type Prompt = Partial<PromptSummary> & { text: string; attachments: ImageData[] };
+export type Prompt = Partial<PromptSummary> & {
+  text: string;
+  attachments: ImageData[];
+};
 
 type ImageStoreState = {
   // State
@@ -30,12 +33,12 @@ type ImageStoreState = {
 export const useImageStore = create<ImageStoreState>()(
   persist(
     immer((set) => ({
-      prompt: "",
+      prompt: '',
       results: [
         {
           id: nanoid(),
           model: imageModels[0],
-          output: "",
+          output: '',
         },
       ],
 
@@ -44,7 +47,7 @@ export const useImageStore = create<ImageStoreState>()(
           state.results.push({
             id: nanoid(),
             model: imageModels[0],
-            output: "",
+            output: '',
           });
         });
       },
@@ -58,7 +61,7 @@ export const useImageStore = create<ImageStoreState>()(
             state.results.push({
               id: nanoid(),
               model: imageModels[0],
-              output: "",
+              output: '',
             });
           }
         });
@@ -67,12 +70,14 @@ export const useImageStore = create<ImageStoreState>()(
       clearResults: (id?: string) => {
         set((state) => {
           if (!id) {
-            state.results.forEach((result) => (result.output = ""));
+            for (const result of state.results) {
+              result.output = '';
+            }
             return;
           }
           const idx = state.results.findIndex((m) => m.id === id);
           if (idx === -1) return;
-          state.results[idx].output = "";
+          state.results[idx].output = '';
         });
       },
 
@@ -99,13 +104,13 @@ export const useImageStore = create<ImageStoreState>()(
       },
     })),
     {
-      name: "image-store",
+      name: 'image-store',
       storage: createJSONStorage(() => localStorage),
       partialize: (state) => {
         return {
           results: state.results.map((result) => ({
             ...result,
-            output: "",
+            output: '',
           })),
         };
       },
@@ -114,12 +119,12 @@ export const useImageStore = create<ImageStoreState>()(
           state.results.push({
             id: nanoid(),
             model: imageModels[0],
-            output: "",
+            output: '',
           });
         }
       },
-    },
-  ),
+    }
+  )
 );
 
 export const useImageStoreHydrated = () => {
@@ -128,9 +133,13 @@ export const useImageStoreHydrated = () => {
   useEffect(() => {
     // Note: This is just in case you want to take into account manual rehydration.
     // You can remove the following line if you don't need it.
-    const unsubHydrate = useImageStore.persist.onHydrate(() => setHydrated(false));
+    const unsubHydrate = useImageStore.persist.onHydrate(() =>
+      setHydrated(false)
+    );
 
-    const unsubFinishHydration = useImageStore.persist.onFinishHydration(() => setHydrated(true));
+    const unsubFinishHydration = useImageStore.persist.onFinishHydration(() =>
+      setHydrated(true)
+    );
 
     setHydrated(useImageStore.persist.hasHydrated());
 

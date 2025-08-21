@@ -1,5 +1,5 @@
-import { TextModelId } from "./model.type";
-import { textModels } from "./models";
+import type { TextModelId } from './model.type';
+import { textModels } from './models';
 
 export const getRequestCost = ({
   modelId,
@@ -11,7 +11,10 @@ export const getRequestCost = ({
   outputTokens: number;
 }) => {
   const model = textModels.find((m) => m.id === modelId);
-  if (!model) return NaN;
-  if (!model.inputCostPerToken || !model.outputCostPerToken) return NaN;
-  return model.inputCostPerToken * inputTokens + model.outputCostPerToken * outputTokens;
+  if (!model) return Number.NaN;
+  if (!(model.inputCostPerToken && model.outputCostPerToken)) return Number.NaN;
+  return (
+    model.inputCostPerToken * inputTokens +
+    model.outputCostPerToken * outputTokens
+  );
 };

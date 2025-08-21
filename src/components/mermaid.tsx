@@ -1,12 +1,12 @@
-"use client";
+'use client';
 
-import { toast } from "@/hooks/use-toast";
-import { Copy } from "lucide-react";
-import mermaid from "mermaid";
-import { useTheme } from "next-themes";
-import { useEffect, useRef, useState } from "react";
-import { Codeblock } from "./codeblock";
-import { Button } from "./ui/button";
+import { Copy } from 'lucide-react';
+import mermaid from 'mermaid';
+import { useTheme } from 'next-themes';
+import { useEffect, useRef, useState } from 'react';
+import { toast } from '@/hooks/use-toast';
+import { Codeblock } from './codeblock';
+import { Button } from './ui/button';
 
 export const Mermaid = ({ source, id }: { source: string; id: string }) => {
   const { resolvedTheme: theme } = useTheme();
@@ -15,19 +15,22 @@ export const Mermaid = ({ source, id }: { source: string; id: string }) => {
 
   useEffect(() => {
     mermaid.initialize({
-      theme: theme === "dark" ? "dark" : "forest",
+      theme: theme === 'dark' ? 'dark' : 'forest',
     });
 
     const initializeMermaid = async () => {
       if (mermaidRef.current) {
         try {
           mermaidRef.current.innerHTML = source;
-          const { svg, bindFunctions } = await mermaid.render(`mermaid-diagram-${id}`, source);
+          const { svg, bindFunctions } = await mermaid.render(
+            `mermaid-diagram-${id}`,
+            source
+          );
           mermaidRef.current.innerHTML = svg;
           bindFunctions?.(mermaidRef.current);
           setError(null);
-        } catch (error) {
-          setError(error as Error);
+        } catch (err) {
+          setError(err as Error);
         }
       }
     };
@@ -36,26 +39,30 @@ export const Mermaid = ({ source, id }: { source: string; id: string }) => {
   }, [id, source, theme]);
 
   if (error) {
-    const code = `%% Unable to render mermaid diagram.\n\n${error.message}\n\n` + source;
+    const code = `%% Unable to render mermaid diagram.\n\n${error.message}\n\n${source}`;
     return <Codeblock language="mermaid">{code}</Codeblock>;
   }
 
   return (
     <div className="relative">
       <Button
-        variant="secondary"
-        size="xsicon"
+        className="absolute top-2 right-2"
         onClick={() => {
           navigator.clipboard.writeText(source);
           toast({
-            title: "Copied to clipboard",
+            title: 'Copied to clipboard',
           });
         }}
-        className="absolute right-2 top-2"
+        size="xsicon"
+        variant="secondary"
       >
         <Copy className="size-4" />
       </Button>
-      <div id={id} ref={mermaidRef} className="my-2 rounded-md border bg-background" />
+      <div
+        className="my-2 rounded-md border bg-background"
+        id={id}
+        ref={mermaidRef}
+      />
     </div>
   );
 };

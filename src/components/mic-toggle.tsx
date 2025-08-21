@@ -1,10 +1,12 @@
-import "regenerator-runtime/runtime";
+import 'regenerator-runtime/runtime';
 
-import { Mic, MicOff } from "lucide-react";
-import { useEffect, useState } from "react";
-import SpeechRecognition, { useSpeechRecognition } from "react-speech-recognition";
-import { useIsClient } from "usehooks-ts";
-import { Button } from "./ui/button";
+import { Mic, MicOff } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import SpeechRecognition, {
+  useSpeechRecognition,
+} from 'react-speech-recognition';
+import { useIsClient } from 'usehooks-ts';
+import { Button } from './ui/button';
 
 export const MicToggle = ({
   sourceId,
@@ -38,16 +40,19 @@ export const MicToggle = ({
     SpeechRecognition.stopListening();
     resetTranscript();
     setActiveSourceId(undefined);
-  }, [activeSourceId, finalTranscript, onTranscript, resetTranscript, sourceId]);
+  }, [
+    activeSourceId,
+    finalTranscript,
+    onTranscript,
+    resetTranscript,
+    sourceId,
+  ]);
 
   return (
     isClient &&
     browserSupportsSpeechRecognition &&
     isMicrophoneAvailable && (
       <Button
-        variant="ghost"
-        size="xsicon"
-        title={listening ? "Stop listening" : "Start listening"}
         onClick={() => {
           if (listening) {
             SpeechRecognition.stopListening();
@@ -56,8 +61,15 @@ export const MicToggle = ({
             SpeechRecognition.startListening({ continuous: true });
           }
         }}
+        size="xsicon"
+        title={listening ? 'Stop listening' : 'Start listening'}
+        variant="ghost"
       >
-        {listening ? <Mic className="size-4 animate-pulse text-red-500" /> : <MicOff className="h-4 w-4" />}
+        {listening ? (
+          <Mic className="size-4 animate-pulse text-red-500" />
+        ) : (
+          <MicOff className="h-4 w-4" />
+        )}
       </Button>
     )
   );

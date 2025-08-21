@@ -1,4 +1,4 @@
-import { Button } from "./ui/button";
+import { Button } from './ui/button';
 import {
   Dialog,
   DialogClose,
@@ -7,7 +7,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "./ui/dialog";
+} from './ui/dialog';
 
 type ConfirmDialogProps = {
   title: string;
@@ -18,9 +18,16 @@ type ConfirmDialogProps = {
   onCancel: () => void;
 };
 
-export const ConfirmDialog = ({ title, text, open, onOpenChange, onConfirm, onCancel }: ConfirmDialogProps) => {
+export const ConfirmDialog = ({
+  title,
+  text,
+  open,
+  onOpenChange,
+  onConfirm,
+  onCancel,
+}: ConfirmDialogProps) => {
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog onOpenChange={onOpenChange} open={open}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
@@ -28,12 +35,12 @@ export const ConfirmDialog = ({ title, text, open, onOpenChange, onConfirm, onCa
         </DialogHeader>
         <DialogFooter>
           <DialogClose asChild>
-            <Button variant="ghost" size="sm" onClick={onCancel}>
+            <Button onClick={onCancel} size="sm" variant="ghost">
               Cancel
             </Button>
           </DialogClose>
           <DialogClose asChild>
-            <Button variant="default" size="sm" onClick={onConfirm}>
+            <Button onClick={onConfirm} size="sm" variant="default">
               Confirm
             </Button>
           </DialogClose>

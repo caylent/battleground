@@ -1,9 +1,13 @@
-import { PollyClient, SynthesizeSpeechCommand, VoiceId } from "@aws-sdk/client-polly";
-import { NextResponse } from "next/server";
+import {
+  PollyClient,
+  SynthesizeSpeechCommand,
+  type VoiceId,
+} from '@aws-sdk/client-polly';
+import { NextResponse } from 'next/server';
 
 // Hard coded to us-east-1 until generative vocies are available in other regions
 const pollyClient = new PollyClient({
-  region: "us-east-1",
+  region: 'us-east-1',
 });
 
 export async function POST(req: Request) {
@@ -17,21 +21,23 @@ export async function POST(req: Request) {
       new SynthesizeSpeechCommand({
         VoiceId: voiceId,
         Text: message,
-        Engine: "generative",
-        OutputFormat: "mp3",
-        TextType: "text",
-      }),
+        Engine: 'generative',
+        OutputFormat: 'mp3',
+        TextType: 'text',
+      })
     );
 
     return new NextResponse(pollyRes.AudioStream?.transformToWebStream(), {
       status: 200,
-      statusText: "OK",
+      statusText: 'OK',
       headers: {
-        "Content-Type": "audio/mpeg",
+        'Content-Type': 'audio/mpeg',
       },
     });
   } catch (err: any) {
-    console.error(err.message);
-    return Response.json({ message: err.message }, { status: err.httpStatusCode ?? 500 });
+    return Response.json(
+      { message: err.message },
+      { status: err.httpStatusCode }
+    );
   }
 }
