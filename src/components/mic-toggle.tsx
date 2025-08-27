@@ -61,7 +61,7 @@ export const MicToggle = ({
             SpeechRecognition.startListening({ continuous: true });
           }
         }}
-        size="xsicon"
+        size="sm"
         title={listening ? 'Stop listening' : 'Start listening'}
         variant="ghost"
       >

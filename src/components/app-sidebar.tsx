@@ -1,79 +1,79 @@
-'use client';
-
-import { Edit, GithubIcon, MessageCircle, Settings } from 'lucide-react';
-import Image from 'next/image';
+import { preloadQuery } from 'convex/nextjs';
+import { GithubIcon } from 'lucide-react';
 import Link from 'next/link';
 import type * as React from 'react';
-import { type NavLink, NavMain } from '@/components/nav-main';
+import { NavUser } from '@/components/nav-user';
 import {
   Sidebar,
   SidebarContent,
   SidebarFooter,
   SidebarHeader,
+  SidebarMenu,
   SidebarMenuButton,
+  SidebarMenuItem,
   SidebarRail,
 } from '@/components/ui/sidebar';
-import { NavUser } from './nav-user';
+import { api } from '../../convex/_generated/api';
+import { Logo } from './logo';
+import { NavChats } from './nav-chats';
+import { NavMain } from './nav-main';
 import { ThemeToggle } from './theme-toggle';
 import { Button } from './ui/button';
 
-const navItems: NavLink[] = [
-  {
-    title: 'Battle',
-    url: '/battle',
-    icon: MessageCircle,
-  },
-  {
-    title: 'Chat',
-    url: '/chat',
-    icon: Edit,
-  },
-  {
-    title: 'Settings',
-    url: '/settings',
-    icon: Settings,
-  },
-];
+export async function AppSidebar({
+  ...props
+}: React.ComponentProps<typeof Sidebar>) {
+  const preloadedChats = await preloadQuery(api.chats.getRecent, { limit: 10 });
 
-export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   return (
-    <Sidebar collapsible="icon" {...props}>
-      <SidebarHeader>
-        <SidebarMenuButton
-          className="data-[state=open]:bg-foreground data-[state=open]:text-background"
-          size="lg"
-        >
-          <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-gray-800 text-lime-500">
-            <Image
-              alt="Battleground"
-              className="size-5"
-              height={20}
-              src="/battle.png"
-              width={20}
-            />
-          </div>
-        </SidebarMenuButton>
-      </SidebarHeader>
-      <SidebarContent>
-        <NavMain items={navItems} />
-      </SidebarContent>
-      <SidebarFooter>
-        <SidebarMenuButton asChild>
-          <Button size="icon" variant="ghost">
-            <Link
-              href="https://github.com/caylent/battleground"
-              target="_blank"
-            >
-              <GithubIcon className="size-4" />
-            </Link>
-          </Button>
-        </SidebarMenuButton>
-        <SidebarMenuButton asChild>
-          <ThemeToggle />
-        </SidebarMenuButton>
-        <NavUser />
-      </SidebarFooter>
-      <SidebarRail />
+    <Sidebar
+      className="overflow-hidden *:data-[sidebar=sidebar]:flex-row"
+      collapsible="icon"
+      {...props}
+    >
+      {/* This is the first sidebar */}
+      {/* We disable collapsible and adjust width to icon. */}
+      {/* This will make the sidebar appear as icons. */}
+      <Sidebar
+        className="w-[calc(var(--sidebar-width-icon)+1px)]! border-r"
+        collapsible="none"
+      >
+        <SidebarHeader>
+          <SidebarMenu>
+            <SidebarMenuItem className="mt-2 flex items-center justify-center">
+              <Logo className="size-6 fill-primary" />
+            </SidebarMenuItem>
+          </SidebarMenu>
+        </SidebarHeader>
+        <SidebarContent>
+          <NavMain />
+        </SidebarContent>
+        <SidebarFooter>
+          <SidebarMenuButton asChild>
+            <Button size="icon" variant="ghost">
+              <Link
+                href="https://github.com/caylent/battleground"
+                target="_blank"
+              >
+                <GithubIcon className="size-4" />
+              </Link>
+            </Button>
+          </SidebarMenuButton>
+          <SidebarMenuButton asChild>
+            <ThemeToggle />
+          </SidebarMenuButton>
+          <NavUser />
+        </SidebarFooter>
+      </Sidebar>
+
+      {/* This is the second sidebar */}
+      {/* We disable collapsible and let it fill remaining space */}
+      <Sidebar className="hidden flex-1 md:flex" collapsible="none">
+        <SidebarContent>
+          <NavChats preloadedChats={preloadedChats} />
+        </SidebarContent>
+        <SidebarRail />
+      </Sidebar>
     </Sidebar>
   );
 }

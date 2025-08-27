@@ -1,6 +1,6 @@
 'use client';
 
-import type { LucideIcon } from 'lucide-react';
+import { MessageCircleIcon, Settings2Icon, SwordsIcon } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
@@ -11,13 +11,25 @@ import {
 } from '@/components/ui/sidebar';
 import { cn } from '@/lib/utils';
 
-export type NavLink = {
-  title: string;
-  url: string;
-  icon?: LucideIcon;
-};
+const navItems = [
+  {
+    title: 'Battle',
+    url: '/battle',
+    icon: SwordsIcon,
+  },
+  {
+    title: 'Chat',
+    url: '/chat',
+    icon: MessageCircleIcon,
+  },
+  {
+    title: 'Settings',
+    url: '/settings',
+    icon: Settings2Icon,
+  },
+];
 
-export function NavMain({ items }: { items: NavLink[] }) {
+export function NavMain() {
   const pathname = usePathname();
 
   const isActive = (url: string) => pathname.startsWith(url);
@@ -25,14 +37,14 @@ export function NavMain({ items }: { items: NavLink[] }) {
   return (
     <SidebarGroup>
       <SidebarMenu>
-        {items.map((item) => (
+        {navItems.map((item) => (
           <SidebarMenuItem key={item.url}>
             <SidebarMenuButton
               asChild
               className={cn(isActive(item.url) && 'bg-sidebar-accent')}
               tooltip={item.title}
             >
-              <Link href={item.url}>
+              <Link href={item.url as any}>
                 {item.icon && <item.icon />}
                 <span>{item.title}</span>
               </Link>

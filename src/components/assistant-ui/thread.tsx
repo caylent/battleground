@@ -5,54 +5,84 @@ import {
   ErrorPrimitive,
   MessagePrimitive,
   ThreadPrimitive,
+  useAssistantRuntime,
+  useMessageRuntime,
+  useThreadRuntime,
 } from '@assistant-ui/react';
+import { useAISDKRuntime } from '@assistant-ui/react-ai-sdk';
+import {
+  Root as ScrollAreaRoot,
+  Viewport as ScrollAreaViewport,
+} from '@radix-ui/react-scroll-area';
 import { motion } from 'framer-motion';
 import {
   ArrowDownIcon,
-  ArrowUpIcon,
   CheckIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
   CopyIcon,
   PencilIcon,
-  PlusIcon,
   RefreshCwIcon,
   Square,
 } from 'lucide-react';
-import type { FC } from 'react';
+import Image from 'next/image';
+import { useTheme } from 'next-themes';
+import { type FC, useState } from 'react';
+import { useLocalStorage } from 'usehooks-ts';
 import { TooltipIconButton } from '@/components/assistant-ui/tooltip-icon-button';
 import { Button } from '@/components/ui/button';
+import { textModels } from '@/lib/model/models';
 import { cn } from '@/lib/utils';
+import {
+  PromptInputModelSelect,
+  PromptInputModelSelectContent,
+  PromptInputModelSelectItem,
+  PromptInputModelSelectTrigger,
+  PromptInputModelSelectValue,
+  PromptInputSubmit,
+  PromptInputToolbar,
+  PromptInputTools,
+} from '../ai-elements/prompt-input';
+import { ScrollBar } from '../ui/scroll-area';
+import {
+  ComposerAddAttachment,
+  ComposerAttachments,
+  UserMessageAttachments,
+} from './attachment';
 import { MarkdownText } from './markdown-text';
 import { ToolFallback } from './tool-fallback';
 
 export const Thread: FC = () => {
   return (
-    <ThreadPrimitive.Root
-      className="flex h-full w-xl flex-col bg-background"
-      style={{
-        ['--thread-max-width' as string]: '48rem',
-        ['--thread-padding-x' as string]: '1rem',
-      }}
-    >
-      <ThreadPrimitive.Viewport className="relative flex min-w-0 flex-1 flex-col gap-6 overflow-y-scroll">
-        <ThreadWelcome />
+    <ScrollAreaRoot asChild>
+      <ThreadPrimitive.Root
+        className="flex h-screen w-3xl flex-col bg-background"
+        style={{
+          ['--thread-max-width' as string]: '48rem',
+          ['--thread-padding-x' as string]: '1rem',
+        }}
+      >
+        <ScrollAreaViewport className="flex-1">
+          <ThreadPrimitive.Viewport className="flex-1 flex-col items-center self-stretch bg-inherit">
+            <ThreadWelcome />
 
-        <ThreadPrimitive.Messages
-          components={{
-            UserMessage,
-            EditComposer,
-            AssistantMessage,
-          }}
-        />
+            <ThreadPrimitive.Messages
+              components={{
+                UserMessage,
+                EditComposer,
+                AssistantMessage,
+              }}
+            />
 
-        <ThreadPrimitive.If empty={false}>
-          <motion.div className="min-h-6 min-w-6 shrink-0" />
-        </ThreadPrimitive.If>
-      </ThreadPrimitive.Viewport>
-
-      <Composer />
-    </ThreadPrimitive.Root>
+            <ThreadPrimitive.If empty={false}>
+              <motion.div className="min-h-6 min-w-6 shrink-0" />
+            </ThreadPrimitive.If>
+          </ThreadPrimitive.Viewport>
+        </ScrollAreaViewport>
+        <ScrollBar />
+        <Composer />
+      </ThreadPrimitive.Root>
+    </ScrollAreaRoot>
   );
 };
 
@@ -71,28 +101,41 @@ const ThreadScrollToBottom: FC = () => {
 };
 
 const ThreadWelcome: FC = () => {
+  const { resolvedTheme: theme } = useTheme();
+
   return (
     <ThreadPrimitive.Empty>
       <div className="mx-auto flex w-full max-w-[var(--thread-max-width)] flex-grow flex-col px-[var(--thread-padding-x)]">
         <div className="flex w-full flex-grow flex-col items-center justify-center">
-          <div className="flex size-full flex-col justify-center px-8 md:mt-20">
+          <div className="flex size-full flex-col justify-center gap-4 px-8 text-center md:mt-20">
             <motion.div
               animate={{ opacity: 1, y: 0 }}
-              className="font-semibold text-2xl"
+              className="font-orbitron font-semibold text-2xl tracking-wider"
               exit={{ opacity: 0, y: 10 }}
               initial={{ opacity: 0, y: 10 }}
               transition={{ delay: 0.5 }}
             >
-              Hello there!
+              Welcome to Battleground!
             </motion.div>
             <motion.div
               animate={{ opacity: 1, y: 0 }}
-              className="text-2xl text-muted-foreground/65"
+              className="font-orbitron text-muted-foreground/65 text-sm tracking-wider"
               exit={{ opacity: 0, y: 10 }}
               initial={{ opacity: 0, y: 10 }}
               transition={{ delay: 0.6 }}
             >
-              How can I help you today?
+              Built by
+              <Image
+                alt="Caylent Logo"
+                className="inline-block"
+                height={30}
+                src={
+                  theme === 'dark'
+                    ? '/caylent-logo-dark.png'
+                    : '/caylent-logo-light.png'
+                }
+                width={100}
+              />
             </motion.div>
           </div>
         </div>
@@ -156,65 +199,65 @@ const ThreadWelcomeSuggestions: FC = () => {
 };
 
 const Composer: FC = () => {
+  const [model, setModel] = useLocalStorage<string>(
+    'chat-model',
+    textModels[0].id
+  );
+
   return (
     <div className="relative mx-auto flex w-full max-w-[var(--thread-max-width)] flex-col gap-4 bg-background px-[var(--thread-padding-x)] pb-4 md:pb-6">
       <ThreadScrollToBottom />
       <ThreadPrimitive.Empty>
         <ThreadWelcomeSuggestions />
       </ThreadPrimitive.Empty>
-      <ComposerPrimitive.Root className="relative flex w-full flex-col rounded-2xl focus-within:ring-1 focus-within:ring-muted-foreground">
+      <ComposerPrimitive.Root className="relative flex w-full flex-col rounded-xl border border-border focus-within:ring-1 focus-within:ring-muted-foreground">
+        <ComposerAttachments />
         <ComposerPrimitive.Input
-          aria-label="Message input"
+          addAttachmentOnPaste
           autoFocus
-          className="max-h-[calc(50dvh)] min-h-16 w-full resize-none rounded-t-2xl border-border border-x border-t bg-muted px-4 pt-2 pb-3 text-base outline-none placeholder:text-muted-foreground focus:outline-primary dark:border-muted-foreground/15"
+          className="max-h-40 flex-grow resize-none border-none bg-transparent px-4 py-4 text-sm outline-none placeholder:text-muted-foreground focus:ring-0 disabled:cursor-not-allowed"
+          minRows={2}
           placeholder="Send a message..."
-          rows={1}
         />
-        <ComposerAction />
+
+        <PromptInputToolbar>
+          <PromptInputTools>
+            <PromptInputModelSelect onValueChange={setModel} value={model}>
+              <PromptInputModelSelectTrigger className="bg-transparent!">
+                <PromptInputModelSelectValue />
+              </PromptInputModelSelectTrigger>
+              <PromptInputModelSelectContent>
+                {textModels.map((m) => (
+                  <PromptInputModelSelectItem key={m.id} value={m.id}>
+                    {m.name}
+                  </PromptInputModelSelectItem>
+                ))}
+              </PromptInputModelSelectContent>
+            </PromptInputModelSelect>
+
+            <ComposerAddAttachment />
+          </PromptInputTools>
+
+          <ThreadPrimitive.If running={false}>
+            <ComposerPrimitive.Send asChild>
+              <PromptInputSubmit className="size-8 rounded-md" />
+            </ComposerPrimitive.Send>
+          </ThreadPrimitive.If>
+
+          <ThreadPrimitive.If running>
+            <ComposerPrimitive.Cancel asChild>
+              <Button
+                aria-label="Stop generating"
+                className="size-8 rounded-md border"
+                type="button"
+                variant="default"
+              >
+                <Square className="size-3.5 fill-white" />
+              </Button>
+            </ComposerPrimitive.Cancel>
+          </ThreadPrimitive.If>
+        </PromptInputToolbar>
       </ComposerPrimitive.Root>
-    </div>
-  );
-};
-
-const ComposerAction: FC = () => {
-  return (
-    <div className="relative flex items-center justify-between rounded-b-2xl border-border border-x border-b bg-muted p-2 dark:border-muted-foreground/15">
-      <TooltipIconButton
-        className="scale-115 p-3.5 hover:bg-foreground/15 dark:hover:bg-background/50"
-        onClick={() => {
-          console.log('Attachment clicked - not implemented');
-        }}
-        tooltip="Attach file"
-        variant="ghost"
-      >
-        <PlusIcon />
-      </TooltipIconButton>
-
-      <ThreadPrimitive.If running={false}>
-        <ComposerPrimitive.Send asChild>
-          <Button
-            aria-label="Send message"
-            className="size-8 rounded-full border border-muted-foreground/60 hover:bg-primary/75 dark:border-muted-foreground/90"
-            type="submit"
-            variant="default"
-          >
-            <ArrowUpIcon className="size-5" />
-          </Button>
-        </ComposerPrimitive.Send>
-      </ThreadPrimitive.If>
-
-      <ThreadPrimitive.If running>
-        <ComposerPrimitive.Cancel asChild>
-          <Button
-            aria-label="Stop generating"
-            className="size-8 rounded-full border border-muted-foreground/60 hover:bg-primary/75 dark:border-muted-foreground/90"
-            type="button"
-            variant="default"
-          >
-            <Square className="size-3.5 fill-white dark:size-4 dark:fill-black" />
-          </Button>
-        </ComposerPrimitive.Cancel>
-      </ThreadPrimitive.If>
     </div>
   );
 };
@@ -251,10 +294,7 @@ const AssistantMessage: FC = () => {
           />
           <MessageError />
         </div>
-
         <AssistantActionBar />
-
-        <BranchPicker className="-ml-2 col-start-2 row-start-2 mr-2" />
       </motion.div>
     </MessagePrimitive.Root>
   );
@@ -301,6 +341,8 @@ const UserMessage: FC = () => {
         <div className="col-start-2 break-words rounded-3xl bg-muted px-5 py-2.5 text-foreground text-sm">
           <MessagePrimitive.Content components={{ Text: MarkdownText }} />
         </div>
+
+        <UserMessageAttachments />
 
         <BranchPicker className="-mr-1 col-span-full col-start-1 row-start-3 justify-end" />
       </motion.div>

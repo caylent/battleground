@@ -14,12 +14,19 @@ import remarkGfm from 'remark-gfm';
 
 import { TooltipIconButton } from '@/components/assistant-ui/tooltip-icon-button';
 import { cn } from '@/lib/utils';
+import { MermaidDiagram } from './mermaid-diagram';
+import { SyntaxHighlighter } from './shiki-highlighter';
 
 const MarkdownTextImpl = () => {
   return (
     <MarkdownTextPrimitive
       className="aui-md"
       components={defaultComponents}
+      componentsByLanguage={{
+        mermaid: {
+          SyntaxHighlighter: MermaidDiagram,
+        },
+      }}
       remarkPlugins={[remarkGfm]}
     />
   );
@@ -65,6 +72,7 @@ const useCopyToClipboard = ({
 };
 
 const defaultComponents = memoizeMarkdownComponents({
+  SyntaxHighlighter,
   h1: ({ className, ...props }) => (
     <h1
       className={cn(
@@ -198,7 +206,7 @@ const defaultComponents = memoizeMarkdownComponents({
   pre: ({ className, ...props }) => (
     <pre
       className={cn(
-        '!rounded-t-none overflow-x-auto rounded-b-lg bg-black p-4 text-white',
+        '!rounded-t-none overflow-x-auto rounded-b-lg bg-black p-4 text-sm text-white',
         className
       )}
       {...props}
@@ -209,7 +217,7 @@ const defaultComponents = memoizeMarkdownComponents({
     return (
       <code
         className={cn(
-          !isCodeBlock && 'rounded border bg-muted font-semibold',
+          !isCodeBlock && 'rounded border bg-muted font-semibold text-sm',
           className
         )}
         {...props}

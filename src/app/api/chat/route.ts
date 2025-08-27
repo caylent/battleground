@@ -2,72 +2,82 @@ import { createAmazonBedrock } from '@ai-sdk/amazon-bedrock';
 import { auth } from '@clerk/nextjs/server';
 import {
   convertToModelMessages,
+  createIdGenerator,
   stepCountIs,
   streamText,
   type UIMessage,
 } from 'ai';
+import { fetchMutation, fetchQuery } from 'convex/nextjs';
 import type { NextRequest } from 'next/server';
 import { getRequestCost } from '@/lib/model/get-request-cost';
 import type { TextModelId } from '@/lib/model/model.type';
 import { textModels } from '@/lib/model/models';
-import { externalRateLimiter, internalRateLimiter } from '@/lib/rate-limiter';
+import { rateLimit } from '@/lib/rate-limiter';
+import { uploadAttachments } from '@/lib/upload-attachments';
 import { tools } from '@/tools';
-
-const internalRateLimitDomain = process.env.INTERNAL_RATE_LIMIT_DOMAIN;
+import { api } from '../../../../convex/_generated/api';
+import type { Id } from '../../../../convex/_generated/dataModel';
 
 export async function POST(req: NextRequest) {
-  const { userId, sessionClaims } = await auth();
+  const { userId } = await auth();
 
-  if (!sessionClaims?.email) {
-    return new Response(JSON.stringify({ message: 'Unauthorized' }), {
-      status: 401,
-    });
+  if (!userId) {
+    return new Response('Unauthorized', { status: 401 });
   }
 
-  const email = sessionClaims.email as string;
+  await rateLimit();
 
-  // If the user is from the internal rate limit domain, we use a different rate limiter
-  if (internalRateLimitDomain && email.endsWith(internalRateLimitDomain)) {
-    const { success } = await internalRateLimiter.limit(email);
-    if (!success) {
-      return new Response(JSON.stringify({ message: 'Too many requests' }), {
-        status: 429,
-      });
-    }
-  } else {
-    const { success } = await externalRateLimiter.limit(email);
-    if (!success) {
-      return new Response(JSON.stringify({ message: 'Too many requests' }), {
-        status: 429,
-      });
-    }
+  const {
+    id,
+    modelId = 'us.anthropic.claude-sonnet-4-20250514-v1:0',
+    message,
+    maxTokens,
+    temperature,
+  } = (await req.json()) as {
+    id: Id<'chats'>;
+    modelId?: TextModelId;
+    systemPrompt?: string;
+    maxTokens?: number;
+    temperature?: number;
+    message: UIMessage;
+  };
+
+  if (!message) {
+    return new Response('No message found', { status: 400 });
   }
 
-  const { modelId, messages, systemPrompt, maxTokens, temperature } =
-    (await req.json()) as {
-      modelId: TextModelId;
-      systemPrompt?: string;
-      maxTokens?: number;
-      temperature?: number;
-      messages: UIMessage[];
-    };
+  const updatedMessage = await uploadAttachments(userId, message);
 
-  const modelInfo = textModels.find((m) => m.id === modelId);
+  let messages: UIMessage[] = [updatedMessage];
 
   try {
+    const chat = await fetchQuery(api.chats.getById, { id });
+
+    if (!chat) {
+      return new Response('Chat not found', { status: 404 });
+    }
+
+    messages = [...(chat?.messages ?? []), message];
+
+    await fetchMutation(api.chats.updateStatus, {
+      id,
+      status: 'in-progress',
+    });
+
+    const modelInfo = textModels.find((m) => m.id === modelId);
+
     const model = createAmazonBedrock({
       region: modelInfo?.region ?? 'us-east-1',
     })(modelId);
 
-    let firstTokenTime: number = Number.NaN;
+    let ttft: number = Number.NaN;
     const start = Date.now();
 
     const result = streamText({
       model,
       system:
-        modelInfo?.capabilities?.includes('SYSTEM_PROMPT') && !!systemPrompt
-          ? systemPrompt
-          : undefined,
+        'You are a helpful assistant. You have access to the following tools (only use them when necessary): ' +
+        Object.keys(tools).join(', '),
       messages: convertToModelMessages(messages),
       tools,
       stopWhen: stepCountIs(5),
@@ -75,18 +85,25 @@ export async function POST(req: NextRequest) {
       temperature,
       experimental_context: { userId },
       onChunk: () => {
-        if (!firstTokenTime) {
-          firstTokenTime = Date.now() - start;
+        if (!ttft) {
+          ttft = Date.now() - start;
         }
       },
     });
 
+    result.consumeStream(); // no await
+
     return result.toUIMessageStreamResponse({
+      originalMessages: [...(chat?.messages ?? []), updatedMessage],
+      generateMessageId: createIdGenerator({
+        prefix: 'msg',
+        size: 16,
+      }),
       messageMetadata: ({ part }) => {
         if (part.type === 'finish') {
           return {
             modelId,
-            firstTokenTime,
+            ttft,
             cost: getRequestCost({
               modelId,
               inputTokens: part.totalUsage.inputTokens ?? 0,
@@ -94,6 +111,12 @@ export async function POST(req: NextRequest) {
             }),
           };
         }
+      },
+      onFinish: async ({ messages: newMessages }) => {
+        await fetchMutation(api.chats.updateMessages, {
+          id,
+          messages: newMessages,
+        });
       },
     });
   } catch (err: any) {
@@ -103,3 +126,41 @@ export async function POST(req: NextRequest) {
     );
   }
 }
+
+// export async function GET(request: Request) {
+//   const streamContext = createResumableStreamContext({
+//     waitUntil: after,
+//     publisher: kv,
+//     subscriber: kv,
+//   });
+
+//   const { searchParams } = new URL(request.url);
+//   const chatId = searchParams.get('chatId');
+
+//   if (!chatId) {
+//     return new Response('id is required', { status: 400 });
+//   }
+
+//   const streamIds = await kv.get<string[]>(`streamIds:${chatId}`);
+
+//   if (!streamIds?.length) {
+//     return new Response('No streams found', { status: 404 });
+//   }
+
+//   const recentStreamId = streamIds.at(-1);
+
+//   if (!recentStreamId) {
+//     return new Response('No recent stream found', { status: 404 });
+//   }
+
+//   const emptyDataStream = createUIMessageStream({
+//     // biome-ignore lint/suspicious/noEmptyBlockStatements: Empty stream
+//     execute: () => {},
+//   });
+
+//   return new Response(
+//     await streamContext.resumableStream(recentStreamId, () =>
+//       emptyDataStream.pipeThrough(new JsonToSseTransformStream())
+//     )
+//   );
+// }

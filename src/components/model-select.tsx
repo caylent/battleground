@@ -17,11 +17,11 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover';
 import { getProviderIcon } from '@/lib/get-provider-icon';
-import type { BaseModel } from '@/lib/model/model.type';
+import type { TextModel } from '@/lib/model/model.type';
 import { cn } from '@/lib/utils';
 
 type ModelSelectProps = {
-  models: BaseModel[];
+  models: TextModel[];
   selectedModelId: string;
   onChange: (modelId: string) => void;
 };

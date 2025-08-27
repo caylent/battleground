@@ -1,9 +1,8 @@
 import { ClerkProvider } from '@clerk/nextjs';
-import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import type { Metadata } from 'next';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import './globals.css';
-import QueryProvider from './providers';
+import { ConvexClientProvider } from '@/components/convex-client-provider';
 import { ThemeProvider } from './theme-provider';
 
 export const metadata: Metadata = {
@@ -20,7 +19,7 @@ export default function RootLayout({
     <ClerkProvider>
       <html className="overflow-hidden" lang="en">
         <body className="overflow-hidden">
-          <QueryProvider>
+          <ConvexClientProvider>
             <ThemeProvider attribute="class" defaultTheme="light">
               <TooltipProvider delayDuration={0}>
                 <div className="flex h-screen w-screen flex-row overflow-hidden">
@@ -28,8 +27,7 @@ export default function RootLayout({
                 </div>
               </TooltipProvider>
             </ThemeProvider>
-            <ReactQueryDevtools initialIsOpen={false} />
-          </QueryProvider>
+          </ConvexClientProvider>
         </body>
       </html>
     </ClerkProvider>
