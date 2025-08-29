@@ -3,30 +3,52 @@ import {
   PutObjectCommand,
   S3Client,
 } from '@aws-sdk/client-s3';
+import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { nanoid } from 'nanoid';
 
 const s3Client = new S3Client({
   region: process.env.AWS_REGION || 'us-east-1',
 });
 
-const BUCKET_NAME = process.env.AWS_S3_BUCKET || 'bedrock-playground-images';
+const BUCKET_NAME = process.env.AWS_S3_BUCKET || 'missing-bucket-name';
 
-// Regex to remove data URL prefix from base64 strings
-const DATA_URL_PREFIX_REGEX = /^data:image\/[a-z]+;base64,/;
+export function generateFileName(contentType?: string) {
+  const timestamp = Date.now();
+  const id = nanoid();
 
-export function generateImageName() {
-  return `${nanoid()}-${Date.now()}.png`;
+  const extensions: Record<string, string> = {
+    'text/plain': '.txt',
+    'text/markdown': '.md',
+    'text/csv': '.csv',
+    'text/html': '.html',
+    'text/css': '.css',
+    'text/javascript': '.js',
+    'application/json': '.json',
+    'application/xml': '.xml',
+    'application/javascript': '.js',
+    'application/typescript': '.ts',
+    'application/x-python': '.py',
+    'application/x-sh': '.sh',
+    'image/jpeg': '.jpg',
+    'image/png': '.png',
+    'image/gif': '.gif',
+    'image/webp': '.webp',
+    'image/svg+xml': '.svg',
+  };
+
+  const extension = contentType ? extensions[contentType] || '.txt' : '.txt';
+  return `${id}-${timestamp}${extension}`;
 }
 
-export async function uploadImageToS3(
+export async function uploadFileToS3(
   key: string,
-  imageData: Buffer,
+  fileData: Buffer,
   contentType: string
 ): Promise<string> {
   const command = new PutObjectCommand({
     Bucket: BUCKET_NAME,
     Key: key,
-    Body: imageData,
+    Body: fileData,
     ContentType: contentType,
   });
 
@@ -36,76 +58,85 @@ export async function uploadImageToS3(
     // Return the public URL
     return `https://${BUCKET_NAME}.s3.${process.env.AWS_REGION || 'us-east-1'}.amazonaws.com/${key}`;
   } catch (error) {
-    console.error('Error uploading image to S3:', error);
-    throw new Error('Failed to upload image to S3');
+    console.error('Error uploading file to S3:', error);
+    throw new Error('Failed to upload file to S3');
   }
 }
 
-export async function uploadImageFromBase64(
+export async function uploadFileFromBuffer(
   userId: string,
-  base64Data: string,
-  contentType = 'image/png'
+  fileBuffer: Buffer,
+  contentType: string,
+  originalName?: string
+): Promise<{ fileName: string; contentType: string }> {
+  try {
+    const fileName = originalName ?? generateFileName(contentType);
+    const key = `user/${userId}/${fileName}`;
+
+    await uploadFileToS3(key, fileBuffer, contentType);
+
+    return {
+      fileName,
+      contentType,
+    };
+  } catch (error) {
+    console.error('Error uploading file to S3:', error);
+    throw new Error('Failed to upload file to S3');
+  }
+}
+
+export async function generatePresignedUrl(
+  userId: string,
+  fileName: string,
+  expiresIn = 24 * 3600 // 24 hours default
 ): Promise<string> {
   try {
-    const imageName = generateImageName();
+    const key = `user/${userId}/${fileName}`;
 
-    const key = `user/${userId}/${imageName}`;
+    const command = new GetObjectCommand({
+      Bucket: BUCKET_NAME,
+      Key: key,
+    });
 
-    // Remove data URL prefix if present (e.g., "data:image/png;base64,")
-    const base64String = base64Data.replace(DATA_URL_PREFIX_REGEX, '');
+    const presignedUrl = await getSignedUrl(s3Client, command, {
+      expiresIn,
+    });
 
-    // Convert base64 to buffer
-    const imageBuffer = Buffer.from(base64String, 'base64');
-
-    await uploadImageToS3(key, imageBuffer, contentType);
-
-    // this URL will be a proxy to the image in S3
-    return `attachments/${imageName}`;
+    return presignedUrl;
   } catch (error) {
-    console.error('Error uploading image from base64 to S3:', error);
-    throw new Error('Failed to upload image from base64 to S3');
+    console.error('Error generating presigned URL:', error);
+    throw new Error('Failed to generate presigned URL');
   }
 }
 
-export async function getImageFromS3(userId: string, imageId: string) {
+export async function getFileFromS3(
+  userId: string,
+  fileName: string
+): Promise<{ data: Uint8Array; contentType: string; contentLength: number }> {
   try {
-    if (!imageId) {
-      throw new Error('Missing id parameter');
-    }
+    const key = `user/${userId}/${fileName}`;
 
-    // Get the object from S3
     const command = new GetObjectCommand({
       Bucket: BUCKET_NAME,
-      Key: `user/${userId}/${imageId}`,
+      Key: key,
     });
 
     const response = await s3Client.send(command);
 
     if (!response.Body) {
-      throw new Error('Image not found');
+      throw new Error('File not found');
     }
 
-    // Convert the stream to a buffer
-    const buffer = Buffer.from(await response.Body.transformToByteArray());
+    // Convert the stream to a Uint8Array
+    const data = await response.Body.transformToByteArray();
 
     return {
-      buffer,
-      contentType: response.ContentType || 'image/png',
-      contentLength: buffer.length,
+      data,
+      contentType: response.ContentType || 'application/octet-stream',
+      contentLength: response.ContentLength || data.length,
     };
   } catch (error) {
-    console.error('Error retrieving image from S3:', error);
-
-    // Re-throw with more specific error types
-    if (error instanceof Error) {
-      if (error.name === 'NoSuchKey') {
-        throw new Error('Image not found');
-      }
-      if (error.message === 'Missing key parameter') {
-        throw error;
-      }
-    }
-
-    throw new Error('Failed to retrieve image from S3');
+    console.error('Error retrieving file from S3:', error);
+    throw new Error('Failed to retrieve file from S3');
   }
 }

@@ -1,17 +1,23 @@
 'use client';
 
-import type { ToolCallContentPartStatus } from '@assistant-ui/react';
+import type { ToolUIPart } from 'ai';
 import { AlertCircle } from 'lucide-react';
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
 import { BorderBeam } from './magicui/border-beam';
-import { Dialog, DialogContent, DialogTrigger } from './ui/dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from './ui/dialog';
 
 export type StatefulImageProps = {
   src?: string;
   alt: string;
   className?: string;
-  state?: ToolCallContentPartStatus;
+  state?: ToolUIPart['state'];
 };
 
 export function StatefulImage({
@@ -27,16 +33,17 @@ export function StatefulImage({
         className
       )}
     >
-      {state?.type === 'running' && (
-        <div className="absolute inset-0 flex items-center justify-center bg-muted">
-          <div className="flex flex-col items-center text-sm">
-            Generating image...
-            <BorderBeam />
+      {state === 'input-streaming' ||
+        (state === 'input-available' && (
+          <div className="absolute inset-0 flex items-center justify-center bg-muted">
+            <div className="flex flex-col items-center text-sm">
+              Generating image...
+              <BorderBeam />
+            </div>
           </div>
-        </div>
-      )}
+        ))}
 
-      {state?.type === 'incomplete' && (
+      {state === 'output-error' && (
         <div className="absolute inset-0 flex items-center justify-center">
           <div className="flex flex-col items-center gap-2 text-destructive">
             <AlertCircle className="h-6" />
@@ -45,7 +52,7 @@ export function StatefulImage({
         </div>
       )}
 
-      {state?.type === 'complete' && src && (
+      {state === 'output-available' && src && (
         <Dialog>
           <DialogTrigger asChild>
             <div className="relative h-full w-full cursor-pointer rounded-lg transition-all hover:border hover:border-primary hover:opacity-90">
@@ -60,6 +67,9 @@ export function StatefulImage({
             </div>
           </DialogTrigger>
           <DialogContent className="h-fit min-w-[60vw] p-2">
+            <DialogHeader>
+              <DialogTitle className="pt-2 pl-2 text-sm">{alt}</DialogTitle>
+            </DialogHeader>
             <div className="relative flex h-full w-full items-center justify-center">
               <Image
                 alt={alt}

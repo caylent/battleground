@@ -1,6 +1,11 @@
 'use client';
 
-import { MessageCircleIcon, Settings2Icon, SwordsIcon } from 'lucide-react';
+import {
+  MessageCircleIcon,
+  Settings2Icon,
+  SparklesIcon,
+  SwordsIcon,
+} from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
@@ -21,6 +26,11 @@ const navItems = [
     title: 'Chat',
     url: '/chat',
     icon: MessageCircleIcon,
+  },
+  {
+    title: 'Elements',
+    url: '/elements',
+    icon: SparklesIcon,
   },
   {
     title: 'Settings',

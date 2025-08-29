@@ -1,14 +1,9 @@
 import { createAmazonBedrock } from '@ai-sdk/amazon-bedrock';
 import { auth } from '@clerk/nextjs/server';
-import {
-  convertToModelMessages,
-  createIdGenerator,
-  stepCountIs,
-  streamText,
-  type UIMessage,
-} from 'ai';
+import { createIdGenerator, stepCountIs, streamText, type UIMessage } from 'ai';
 import { fetchMutation, fetchQuery } from 'convex/nextjs';
 import type { NextRequest } from 'next/server';
+import { convertToModelMessageWithAttachments } from '@/lib/convert-to-model-messages';
 import { getRequestCost } from '@/lib/model/get-request-cost';
 import type { TextModelId } from '@/lib/model/model.type';
 import { textModels } from '@/lib/model/models';
@@ -33,13 +28,15 @@ export async function POST(req: NextRequest) {
     message,
     maxTokens,
     temperature,
+    trigger = 'submit-message',
   } = (await req.json()) as {
     id: Id<'chats'>;
+    message: UIMessage;
     modelId?: TextModelId;
     systemPrompt?: string;
     maxTokens?: number;
     temperature?: number;
-    message: UIMessage;
+    trigger?: 'submit-message' | 'regenerate-message';
   };
 
   if (!message) {
@@ -57,7 +54,23 @@ export async function POST(req: NextRequest) {
       return new Response('Chat not found', { status: 404 });
     }
 
-    messages = [...(chat?.messages ?? []), message];
+    console.log('trigger', trigger);
+
+    if (trigger === 'regenerate-message') {
+      console.log('regenerate-message', updatedMessage.id);
+
+      const lastMessageIndex = (chat.messages ?? []).findIndex(
+        (msg) => msg.id === updatedMessage.id
+      );
+
+      if (lastMessageIndex === -1) {
+        throw new Error('Message to regenerate not found');
+      }
+      // Keep all messages up to and including the one to regenerate, remove everything after
+      messages = (chat.messages ?? []).slice(0, lastMessageIndex + 1);
+    } else {
+      messages = [...(chat?.messages ?? []), updatedMessage];
+    }
 
     await fetchMutation(api.chats.updateStatus, {
       id,
@@ -78,7 +91,7 @@ export async function POST(req: NextRequest) {
       system:
         'You are a helpful assistant. You have access to the following tools (only use them when necessary): ' +
         Object.keys(tools).join(', '),
-      messages: convertToModelMessages(messages),
+      messages: await convertToModelMessageWithAttachments(userId, messages),
       tools,
       stopWhen: stepCountIs(5),
       maxOutputTokens: maxTokens,
@@ -94,7 +107,7 @@ export async function POST(req: NextRequest) {
     result.consumeStream(); // no await
 
     return result.toUIMessageStreamResponse({
-      originalMessages: [...(chat?.messages ?? []), updatedMessage],
+      originalMessages: messages,
       generateMessageId: createIdGenerator({
         prefix: 'msg',
         size: 16,

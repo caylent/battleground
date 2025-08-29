@@ -50,14 +50,9 @@ const useAttachmentSrc = () => {
     useShallow((a): { file?: File; src?: string } => {
       console.log(a);
       if (a.file) return { file: a.file };
-      if (a.name.startsWith('data:')) return { src: a.name };
-      if (a.name.startsWith('attachments/')) {
-        const origin = window.location.origin;
-        return { src: `/api/${a.name}` };
-      }
-      const src = a.content?.filter((c) => c.type === 'image')[0]?.image;
-      if (!src) return {};
-      return { src };
+      if (a.name.startsWith('https://')) return { src: a.name };
+      const contentSrc = a.content?.filter((c) => c.type === 'image')[0]?.image;
+      return { src: contentSrc };
     })
   );
 
@@ -116,7 +111,7 @@ const AttachmentThumb: FC = () => {
   const isImage = useAttachment((a) => a.type === 'image');
   const src = useAttachmentSrc();
   return (
-    <Avatar className="flex size-10 items-center justify-center rounded-sm border bg-muted text-sm">
+    <Avatar className="flex size-8 items-center justify-center rounded-sm border bg-muted text-sm">
       <AvatarFallback delayMs={isImage ? 200 : 0}>
         <FileIcon />
       </AvatarFallback>
@@ -132,7 +127,7 @@ const AttachmentUI: FC = () => {
       <AttachmentPrimitive.Root className="relative mt-2">
         <AttachmentPreviewDialog>
           <TooltipTrigger asChild>
-            <div className="flex h-12 w-40 items-center justify-center gap-2 rounded-lg border px-0.75 py-1">
+            <div className="flex h-10 w-40 items-center justify-center gap-2 rounded-lg border px-0.75 py-1">
               <AttachmentThumb />
               <div className="flex-grow basis-0">
                 <p className="line-clamp-1 text-ellipsis break-all font-bold text-muted-foreground text-xs">

@@ -1,15 +1,10 @@
 import {
   ActionBarPrimitive,
-  BranchPickerPrimitive,
   ComposerPrimitive,
   ErrorPrimitive,
   MessagePrimitive,
   ThreadPrimitive,
-  useAssistantRuntime,
-  useMessageRuntime,
-  useThreadRuntime,
 } from '@assistant-ui/react';
-import { useAISDKRuntime } from '@assistant-ui/react-ai-sdk';
 import {
   Root as ScrollAreaRoot,
   Viewport as ScrollAreaViewport,
@@ -18,8 +13,6 @@ import { motion } from 'framer-motion';
 import {
   ArrowDownIcon,
   CheckIcon,
-  ChevronLeftIcon,
-  ChevronRightIcon,
   CopyIcon,
   PencilIcon,
   RefreshCwIcon,
@@ -27,12 +20,11 @@ import {
 } from 'lucide-react';
 import Image from 'next/image';
 import { useTheme } from 'next-themes';
-import { type FC, useState } from 'react';
+import type { FC } from 'react';
 import { useLocalStorage } from 'usehooks-ts';
 import { TooltipIconButton } from '@/components/assistant-ui/tooltip-icon-button';
 import { Button } from '@/components/ui/button';
 import { textModels } from '@/lib/model/models';
-import { cn } from '@/lib/utils';
 import {
   PromptInputModelSelect,
   PromptInputModelSelectContent,
@@ -343,8 +335,6 @@ const UserMessage: FC = () => {
         </div>
 
         <UserMessageAttachments />
-
-        <BranchPicker className="-mr-1 col-span-full col-start-1 row-start-3 justify-end" />
       </motion.div>
     </MessagePrimitive.Root>
   );
@@ -389,35 +379,5 @@ const EditComposer: FC = () => {
         </div>
       </ComposerPrimitive.Root>
     </div>
-  );
-};
-
-const BranchPicker: FC<BranchPickerPrimitive.Root.Props> = ({
-  className,
-  ...rest
-}) => {
-  return (
-    <BranchPickerPrimitive.Root
-      className={cn(
-        'inline-flex items-center text-muted-foreground text-xs',
-        className
-      )}
-      hideWhenSingleBranch
-      {...rest}
-    >
-      <BranchPickerPrimitive.Previous asChild>
-        <TooltipIconButton tooltip="Previous">
-          <ChevronLeftIcon />
-        </TooltipIconButton>
-      </BranchPickerPrimitive.Previous>
-      <span className="font-medium">
-        <BranchPickerPrimitive.Number /> / <BranchPickerPrimitive.Count />
-      </span>
-      <BranchPickerPrimitive.Next asChild>
-        <TooltipIconButton tooltip="Next">
-          <ChevronRightIcon />
-        </TooltipIconButton>
-      </BranchPickerPrimitive.Next>
-    </BranchPickerPrimitive.Root>
   );
 };

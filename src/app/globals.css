@@ -42,7 +42,7 @@
   --font-serif: Lora, serif;
   --font-mono: IBM Plex Mono, monospace;
   --font-orbitron: Orbitron, sans-serif;
-  --radius: 1rem;
+  --radius: 0.5rem;
   --shadow-2xs: 0px 2px 3px 0px hsl(0 0% 0% / 0.08);
   --shadow-xs: 0px 2px 3px 0px hsl(0 0% 0% / 0.08);
   --shadow-sm: 0px 2px 3px 0px hsl(0 0% 0% / 0.16), 0px 1px 2px -1px hsl(0 0% 0% / 0.16);
@@ -92,7 +92,7 @@
   --font-serif: Lora, serif;
   --font-mono: IBM Plex Mono, monospace;
   --font-orbitron: Orbitron, sans-serif;
-  --radius: 1rem;
+  --radius: 0.5rem;
   --shadow-2xs: 0px 2px 3px 0px hsl(0 0% 0% / 0.08);
   --shadow-xs: 0px 2px 3px 0px hsl(0 0% 0% / 0.08);
   --shadow-sm: 0px 2px 3px 0px hsl(0 0% 0% / 0.16), 0px 1px 2px -1px hsl(0 0% 0% / 0.16);

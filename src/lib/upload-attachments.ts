@@ -1,5 +1,5 @@
 import type { FileUIPart, UIMessage } from 'ai';
-import { uploadImageFromBase64 } from './s3-utils';
+import { uploadFileFromBuffer } from './s3-utils';
 
 // Move regex to top level for performance
 const CONTENT_TYPE_REGEX = /data:([^;]+)/;
@@ -43,15 +43,22 @@ export async function uploadAttachments(
       try {
         const { contentType, base64Data } = parseDataUrl(part.url);
 
-        const url = await uploadImageFromBase64(
+        console.log('uploading data url to s3', {
+          ...part,
+          url: part.url.slice(0, 20),
+        });
+
+        const { fileName } = await uploadFileFromBuffer(
           userId,
-          base64Data,
-          contentType
+          Buffer.from(base64Data, 'base64'),
+          contentType,
+          part.filename
         );
 
         updatedMessage.parts.push({
           type: 'file',
-          url,
+          url: `/api/attachments?filename=${fileName}`,
+          filename: fileName,
           mediaType: contentType,
         } satisfies FileUIPart);
       } catch (error) {

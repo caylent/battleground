@@ -1,17 +1,22 @@
 import { makeAssistantToolUI } from '@assistant-ui/react';
+import type {
+  ImageGenerationToolInput,
+  ImageGenerationToolOutput,
+} from '@/tools/image-tool';
 import { StatefulImage } from '../stateful-image';
 
 export const ImageTool = makeAssistantToolUI<
-  { prompt: string },
-  { url: string }
+  ImageGenerationToolInput,
+  ImageGenerationToolOutput
 >({
   toolName: 'image_generation',
   render: ({ status, result }) => {
-    // Get the current URL origin in a safe, SSR-compatible way
-    const origin = window.location.origin;
-
-    const imageUrl = `${origin}/api/${result?.url}`;
-
-    return <StatefulImage alt="Image" src={imageUrl} state={status} />;
+    return (
+      <StatefulImage
+        alt="Image"
+        src={`/api/attachments?filename=${result?.fileName}`}
+        state={status}
+      />
+    );
   },
 });

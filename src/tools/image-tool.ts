@@ -1,14 +1,26 @@
 import { bedrock } from '@ai-sdk/amazon-bedrock';
 import { experimental_generateImage as generateImage, tool } from 'ai';
 import z from 'zod';
-import { uploadImageFromBase64 } from '../lib/s3-utils';
+import { uploadFileFromBuffer } from '../lib/s3-utils';
+
+const inputSchema = z.object({
+  prompt: z.string(),
+});
+
+export type ImageGenerationToolInput = z.infer<typeof inputSchema>;
+
+const outputSchema = z.object({
+  fileName: z.string(),
+  contentType: z.string(),
+});
+
+export type ImageGenerationToolOutput = z.infer<typeof outputSchema>;
 
 export const ImageGenerationTool = tool({
   name: 'image_generation',
   description: 'Generate an image',
-  inputSchema: z.object({
-    prompt: z.string(),
-  }),
+  inputSchema,
+  outputSchema,
   execute: async ({ prompt }, { experimental_context }) => {
     const { userId } = experimental_context as { userId: string };
 
@@ -25,15 +37,11 @@ export const ImageGenerationTool = tool({
 
     try {
       // Upload the generated image to S3 and return the S3 URL
-      const url = await uploadImageFromBase64(
+      return await uploadFileFromBuffer(
         userId,
-        image.base64,
+        Buffer.from(image.base64, 'base64'),
         image.mediaType
       );
-
-      console.log('url', url);
-
-      return { url };
     } catch (error) {
       console.error('Failed to upload image to S3:', error);
       // Fallback to original URL if S3 upload fails
