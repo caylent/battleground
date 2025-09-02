@@ -78,108 +78,101 @@ export default function Chat({
   };
 
   return (
-    <ChatBackground>
-      <div className="relative mx-auto size-full h-screen max-w-4xl p-4">
-        <div className="flex h-full flex-col">
-          <Conversation className="h-full">
-            <ConversationContent>
-              {messages.map((message, messageIdx) => {
-                const isLastMessage = messageIdx === messages.length - 1;
+    <div className="relative mx-auto size-full h-screen max-w-4xl p-4">
+      <div className="flex h-full flex-col">
+        <Conversation className="h-full">
+          <ConversationContent>
+            {messages.map((message, messageIdx) => {
+              const isLastMessage = messageIdx === messages.length - 1;
 
-                return (
-                  <div key={message.id}>
-                    <Message from={message.role} key={message.id}>
-                      {message.role === 'user' && (
-                        <UserActions
-                          chatId={chat?._id ?? ''}
-                          message={message}
-                        />
-                      )}
+              return (
+                <div key={message.id}>
+                  <Message from={message.role} key={message.id}>
+                    {message.role === 'user' && (
+                      <UserActions chatId={chat?._id ?? ''} message={message} />
+                    )}
 
-                      <MessageContent>
-                        {message.parts.map((part, partIdx) => {
-                          switch (part.type) {
-                            case 'text': {
-                              return (
-                                <div key={`${message.id}-${partIdx}`}>
-                                  <Response>{part.text}</Response>
-                                </div>
-                              );
-                            }
-                            case 'file': {
-                              return (
-                                <Attachment
-                                  alt={part.filename ?? ''}
-                                  contentType={part.mediaType ?? ''}
-                                  filename={part.filename ?? ''}
-                                  key={`${message.id}-${partIdx}`}
-                                  src={part.url ?? ''}
-                                />
-                              );
-                            }
-                            case 'reasoning':
-                              return (
-                                <Reasoning
-                                  className="w-full"
-                                  isStreaming={status === 'streaming'}
-                                  key={`${message.id}-${partIdx}`}
-                                >
-                                  <ReasoningTrigger />
-                                  <ReasoningContent>
-                                    {part.text}
-                                  </ReasoningContent>
-                                </Reasoning>
-                              );
-                            case 'tool-image_generation':
-                              return (
-                                <StatefulImage
-                                  alt={part.output?.fileName ?? ''}
-                                  key={`${message.id}-${partIdx}`}
-                                  src={`/api/attachments?filename=${part.output?.fileName}`}
-                                  state={part.state}
-                                />
-                              );
-                            default:
-                              return null;
+                    <MessageContent>
+                      {message.parts.map((part, partIdx) => {
+                        switch (part.type) {
+                          case 'text': {
+                            return (
+                              <div key={`${message.id}-${partIdx}`}>
+                                <Response>{part.text}</Response>
+                              </div>
+                            );
                           }
-                        })}
+                          case 'file': {
+                            return (
+                              <Attachment
+                                alt={part.filename ?? ''}
+                                contentType={part.mediaType ?? ''}
+                                filename={part.filename ?? ''}
+                                key={`${message.id}-${partIdx}`}
+                                src={part.url ?? ''}
+                              />
+                            );
+                          }
+                          case 'reasoning':
+                            return (
+                              <Reasoning
+                                className="w-full"
+                                isStreaming={status === 'streaming'}
+                                key={`${message.id}-${partIdx}`}
+                              >
+                                <ReasoningTrigger />
+                                <ReasoningContent>{part.text}</ReasoningContent>
+                              </Reasoning>
+                            );
+                          case 'tool-image_generation':
+                            return (
+                              <StatefulImage
+                                alt={part.output?.fileName ?? ''}
+                                key={`${message.id}-${partIdx}`}
+                                src={`/api/attachments?filename=${part.output?.fileName}`}
+                                state={part.state}
+                              />
+                            );
+                          default:
+                            return null;
+                        }
+                      })}
 
-                        {(status === 'submitted' || status === 'streaming') &&
-                          isLastMessage &&
-                          message.role === 'assistant' && (
-                            <Spinner className="mt-2" variant="ellipsis" />
-                          )}
-                        {message.role === 'assistant' &&
-                          (!isLastMessage ||
-                            (status === 'ready' && isLastMessage)) && (
-                            <AssistantActions
-                              message={message}
-                              onRegenerate={() =>
-                                regenerate({ messageId: message.id })
-                              }
-                            />
-                          )}
-                      </MessageContent>
-                    </Message>
-                  </div>
-                );
-              })}
-            </ConversationContent>
-            <ConversationScrollButton />
-          </Conversation>
+                      {(status === 'submitted' || status === 'streaming') &&
+                        isLastMessage &&
+                        message.role === 'assistant' && (
+                          <Spinner className="mt-2" variant="ellipsis" />
+                        )}
+                      {message.role === 'assistant' &&
+                        (!isLastMessage ||
+                          (status === 'ready' && isLastMessage)) && (
+                          <AssistantActions
+                            message={message}
+                            onRegenerate={() =>
+                              regenerate({ messageId: message.id })
+                            }
+                          />
+                        )}
+                    </MessageContent>
+                  </Message>
+                </div>
+              );
+            })}
+          </ConversationContent>
+          <ConversationScrollButton />
+        </Conversation>
 
-          <AppPromptInput
-            files={files}
-            input={input}
-            model={model}
-            onSubmitAction={handleSubmit}
-            setFilesAction={setFiles}
-            setInputAction={setInput}
-            setModelAction={setModel}
-            status={status}
-          />
-        </div>
+        <AppPromptInput
+          files={files}
+          input={input}
+          model={model}
+          onSubmitAction={handleSubmit}
+          setFilesAction={setFiles}
+          setInputAction={setInput}
+          setModelAction={setModel}
+          status={status}
+        />
       </div>
-    </ChatBackground>
+    </div>
   );
 }

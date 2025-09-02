@@ -29,13 +29,14 @@ export async function AppSidebar({
     <Sidebar
       className="overflow-hidden *:data-[sidebar=sidebar]:flex-row"
       collapsible="icon"
+      variant="floating"
       {...props}
     >
       {/* This is the first sidebar */}
       {/* We disable collapsible and adjust width to icon. */}
       {/* This will make the sidebar appear as icons. */}
       <Sidebar
-        className="w-[calc(var(--sidebar-width-icon)+1px)]! border-r"
+        className="w-[calc(var(--sidebar-width-icon)+1px)]! rounded-l-md border-r-0 bg-white/2 group-data-[state=expanded]:border-r"
         collapsible="none"
       >
         <SidebarHeader>
@@ -68,7 +69,10 @@ export async function AppSidebar({
 
       {/* This is the second sidebar */}
       {/* We disable collapsible and let it fill remaining space */}
-      <Sidebar className="hidden flex-1 md:flex" collapsible="none">
+      <Sidebar
+        className="hidden flex-1 rounded-r-md md:flex"
+        collapsible="none"
+      >
         <SidebarContent>
           <NavChats preloadedChats={preloadedChats} />
         </SidebarContent>
