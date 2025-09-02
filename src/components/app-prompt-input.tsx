@@ -1,9 +1,8 @@
 'use client';
 
-import { useMutation } from 'convex/react';
-import { PaperclipIcon, Settings } from 'lucide-react';
-import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import type { ChatStatus, FileUIPart } from 'ai';
+import { PaperclipIcon } from 'lucide-react';
+import { useFilePicker } from 'use-file-picker';
 import {
   PromptInput,
   PromptInputButton,
@@ -18,39 +17,77 @@ import {
   PromptInputTools,
 } from '@/components/ai-elements/prompt-input';
 import { textModels } from '@/lib/model/models';
-import { api } from '../../convex/_generated/api';
+import { Attachment } from './attachment';
 
-export const AppPromptInput = () => {
-  const router = useRouter();
-  const [text, setText] = useState<string>('');
-  const [model, setModel] = useState<string>(textModels[0].id);
+export type AppPromptInputProps = {
+  status: ChatStatus;
+  onSubmitAction: (event: React.FormEvent) => void;
+  input: string;
+  setInputAction: (input: string) => void;
+  files: FileUIPart[];
+  setFilesAction: (files: FileUIPart[]) => void;
+  model: string;
+  setModelAction: (model: string) => void;
+};
 
-  const createChat = useMutation(api.chats.create);
-
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    const chatId = await createChat({
-      name: 'New Chat',
-      initialMessages: [],
-    });
-    router.push(`/chat/${chatId}`);
-    setText('');
-  };
+export const AppPromptInput = ({
+  status,
+  onSubmitAction,
+  input,
+  setInputAction,
+  files,
+  setFilesAction,
+  model,
+  setModelAction,
+}: AppPromptInputProps) => {
+  const { openFilePicker } = useFilePicker({
+    accept: 'image/*, text/*',
+    readAs: 'DataURL',
+    onFilesSuccessfullySelected: ({ filesContent }) => {
+      for (const file of filesContent) {
+        setFilesAction([
+          ...files,
+          {
+            url: file.content,
+            filename: file.name,
+            mediaType: file.type,
+            type: 'file',
+          },
+        ]);
+      }
+    },
+  });
 
   return (
-    <PromptInput className="w-[90%] max-w-3xl" onSubmit={handleSubmit}>
+    <PromptInput className="mt-2" onSubmit={onSubmitAction}>
+      {files.length > 0 && (
+        <div className="flex flex-row flex-wrap gap-2 p-2">
+          {files.map((file) => (
+            <Attachment
+              alt={file.filename ?? ''}
+              contentType={file.mediaType ?? ''}
+              filename={file.filename ?? ''}
+              key={file.filename ?? ''}
+              onDeleteAction={() => {
+                setFilesAction(files.filter((f) => f.url !== file.url));
+              }}
+              src={file.url}
+            />
+          ))}
+        </div>
+      )}
       <PromptInputTextarea
-        onChange={(e) => setText(e.target.value)}
-        value={text}
+        onChange={(e) => setInputAction(e.target.value)}
+        value={input}
       />
       <PromptInputToolbar>
         <PromptInputTools>
-          <PromptInputButton>
-            <PaperclipIcon size={16} />
+          <PromptInputButton onClick={openFilePicker}>
+            <PaperclipIcon className="size-3" />
           </PromptInputButton>
           <PromptInputModelSelect
             onValueChange={(value) => {
-              setModel(value);
+              setModelAction(value);
             }}
             value={model}
           >
@@ -65,11 +102,8 @@ export const AppPromptInput = () => {
               ))}
             </PromptInputModelSelectContent>
           </PromptInputModelSelect>
-          <PromptInputButton>
-            <Settings size={16} />
-          </PromptInputButton>
         </PromptInputTools>
-        <PromptInputSubmit disabled={!text} status={'ready'} />
+        <PromptInputSubmit disabled={!input} status={status} />
       </PromptInputToolbar>
     </PromptInput>
   );

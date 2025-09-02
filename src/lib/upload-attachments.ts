@@ -1,4 +1,5 @@
-import type { FileUIPart, UIMessage } from 'ai';
+import type { FileUIPart } from 'ai';
+import type { MyUIMessage } from '@/types/app-message';
 import { uploadFileFromBuffer } from './s3-utils';
 
 // Move regex to top level for performance
@@ -26,9 +27,9 @@ export function parseDataUrl(dataUrl: string) {
 
 export async function uploadAttachments(
   userId: string,
-  message: UIMessage
-): Promise<UIMessage> {
-  const updatedMessage: UIMessage = {
+  message: MyUIMessage
+): Promise<MyUIMessage> {
+  const updatedMessage: MyUIMessage = {
     ...message,
     parts: [],
   };

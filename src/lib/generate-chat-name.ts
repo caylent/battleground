@@ -4,7 +4,7 @@ import { z } from 'zod';
 
 export const generateChatName = async (message: UIMessage) => {
   const result = await generateObject({
-    model: bedrock('us.anthropic.claude-3-5-haiku-20241022-v1:0'),
+    model: bedrock('us.anthropic.claude-sonnet-4-20250514-v1:0'),
     schema: z.object({
       name: z.string(),
     }),

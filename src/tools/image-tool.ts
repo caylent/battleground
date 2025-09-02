@@ -35,17 +35,10 @@ export const ImageGenerationTool = tool({
       throw new Error('No image data returned from generation');
     }
 
-    try {
-      // Upload the generated image to S3 and return the S3 URL
-      return await uploadFileFromBuffer(
-        userId,
-        Buffer.from(image.base64, 'base64'),
-        image.mediaType
-      );
-    } catch (error) {
-      console.error('Failed to upload image to S3:', error);
-      // Fallback to original URL if S3 upload fails
-      return image;
-    }
+    return await uploadFileFromBuffer(
+      userId,
+      Buffer.from(image.base64, 'base64'),
+      image.mediaType
+    );
   },
 });

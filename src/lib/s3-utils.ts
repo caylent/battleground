@@ -12,7 +12,7 @@ const s3Client = new S3Client({
 
 const BUCKET_NAME = process.env.AWS_S3_BUCKET || 'missing-bucket-name';
 
-export function generateFileName(contentType?: string) {
+export function generateFileName(originalName?: string, contentType?: string) {
   const timestamp = Date.now();
   const id = nanoid();
 
@@ -37,6 +37,12 @@ export function generateFileName(contentType?: string) {
   };
 
   const extension = contentType ? extensions[contentType] || '.txt' : '.txt';
+
+  if (originalName) {
+    const nameWithoutExtension = originalName.split('.').slice(0, -1).join('.');
+    return `${nameWithoutExtension}-${timestamp}${extension}`;
+  }
+
   return `${id}-${timestamp}${extension}`;
 }
 
@@ -70,7 +76,7 @@ export async function uploadFileFromBuffer(
   originalName?: string
 ): Promise<{ fileName: string; contentType: string }> {
   try {
-    const fileName = originalName ?? generateFileName(contentType);
+    const fileName = generateFileName(originalName, contentType);
     const key = `user/${userId}/${fileName}`;
 
     await uploadFileToS3(key, fileBuffer, contentType);

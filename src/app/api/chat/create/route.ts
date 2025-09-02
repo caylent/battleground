@@ -1,9 +1,10 @@
 import { auth } from '@clerk/nextjs/server';
-import type { UIMessage } from 'ai';
 import { fetchMutation } from 'convex/nextjs';
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 import { generateChatName } from '@/lib/generate-chat-name';
+import { uploadAttachments } from '@/lib/upload-attachments';
+import type { MyUIMessage } from '@/types/app-message';
 import { api } from '../../../../../convex/_generated/api';
 
 export async function POST(req: NextRequest) {
@@ -14,22 +15,22 @@ export async function POST(req: NextRequest) {
   }
 
   const { message } = (await req.json()) as {
-    message: UIMessage;
+    message: MyUIMessage;
   };
+
+  const updatedMessage = await uploadAttachments(userId, message);
 
   if (!message) {
     return new Response('No message found', { status: 400 });
   }
 
-  try {
-    const chatName = await generateChatName(message);
-    const chatId = await fetchMutation(api.chats.create, { name: chatName });
+  const chatName = await generateChatName(message);
+  const chatId = await fetchMutation(api.chats.create, {
+    name: chatName,
+    messages: [updatedMessage],
+  });
 
-    return NextResponse.redirect(new URL(`/chat/${chatId}`, req.url));
-  } catch (err: any) {
-    return Response.json(
-      { message: err.message },
-      { status: err.httpStatusCode }
-    );
-  }
+  console.log('chatId', chatId, 'chatName', chatName);
+
+  return NextResponse.json({ chatId });
 }

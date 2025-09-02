@@ -115,7 +115,6 @@ export const PromptInputTools = ({
 export type PromptInputButtonProps = ComponentProps<typeof Button>;
 
 export const PromptInputButton = ({
-  variant = 'ghost',
   className,
   size,
   ...props
@@ -126,14 +125,13 @@ export const PromptInputButton = ({
   return (
     <Button
       className={cn(
-        'shrink-0 gap-1.5 rounded-lg',
-        variant === 'ghost' && 'text-muted-foreground',
+        'shrink-0 gap-1.5 rounded-lg text-muted-foreground hover:text-foreground',
         newSize === 'default' && 'px-3',
         className
       )}
       size={newSize}
       type="button"
-      variant={variant}
+      variant={'link'}
       {...props}
     />
   );

@@ -11,6 +11,7 @@ export const chatSchema = defineTable({
   branchFromIndex: v.optional(v.number()), // Index of the message this branch started from
   isFavorite: v.optional(v.boolean()),
   isArchived: v.optional(v.boolean()),
+  activeStreamId: v.optional(v.string()),
 });
 
 export const promptSchema = defineTable({

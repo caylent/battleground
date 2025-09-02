@@ -14,7 +14,10 @@ export type ActionsProps = ComponentProps<'div'>;
 
 export const Actions = ({ className, children, ...props }: ActionsProps) => (
   <div
-    className={cn('hidden items-center gap-1 group-hover:flex', className)}
+    className={cn(
+      'flex items-center gap-1 opacity-0 transition-opacity duration-800 group-hover:opacity-100',
+      className
+    )}
     {...props}
   >
     {children}
@@ -31,14 +34,14 @@ export const Action = ({
   children,
   label,
   className,
-  variant = 'ghost',
+  variant = 'link',
   size = 'sm',
   ...props
 }: ActionProps) => {
   const button = (
     <Button
       className={cn(
-        'relative size-9 p-1.5 text-muted-foreground hover:text-foreground',
+        'relative size-6 p-1.5 text-muted-foreground hover:text-foreground',
         className
       )}
       size={size}

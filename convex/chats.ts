@@ -153,18 +153,17 @@ export const getStats = query({
 export const create = mutation({
   args: {
     name: v.string(),
-    initialMessages: v.array(v.any()),
+    messages: v.optional(v.array(v.any())),
   },
   handler: async (ctx, args) => {
     const now = Date.now();
-    const messages = args.initialMessages || [];
 
     const chatId = await ctx.db.insert("chats", {
       name: args.name,
-      messages,
+      messages: args.messages || [],
+      messageCount: args.messages?.length || 0,
       status: "idle",
       updatedAt: now,
-      messageCount: messages.length,
     });
     
     return chatId;
@@ -172,22 +171,63 @@ export const create = mutation({
 });
 
 /**
- * Update chat messages (replaces all messages)
+ * Consolidated update method for chats with optional parameters
+ * Accepts any combination of fields to update
  */
-export const updateMessages = mutation({
+export const update = mutation({
   args: {
     id: v.id("chats"),
-    messages: v.array(v.any()),
+    messages: v.optional(v.array(v.any())),
+    status: v.optional(v.union(v.literal("idle"), v.literal("in-progress"))),
+    name: v.optional(v.string()),
+    isFavorite: v.optional(v.boolean()),
+    activeStreamId: v.optional(v.string()),
+    isArchived: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
-    const { id, messages } = args;
+    const { id, ...updateFields } = args;
     
-    const fieldsToUpdate: Record<string, any> = {
-      messages,
-      updatedAt: Date.now(),
-      messageCount: messages.length,
-      status: "idle",
-    };
+    const fieldsToUpdate: Record<string, any> = {};
+    
+    // Handle messages update with additional computed fields
+    if (updateFields.messages !== undefined) {
+      fieldsToUpdate.messages = updateFields.messages;
+      fieldsToUpdate.messageCount = updateFields.messages.length;
+      // Set status to idle when messages are updated (unless explicitly overridden)
+      if (updateFields.status === undefined) {
+        fieldsToUpdate.status = "idle";
+      }
+    }
+    
+    // Handle status update
+    if (updateFields.status !== undefined) {
+      fieldsToUpdate.status = updateFields.status;
+    }
+    
+    // Handle name update
+    if (updateFields.name !== undefined) {
+      fieldsToUpdate.name = updateFields.name;
+    }
+    
+    // Handle isFavorite update
+    if (updateFields.isFavorite !== undefined) {
+      fieldsToUpdate.isFavorite = updateFields.isFavorite;
+    }
+    
+    // Handle activeStreamId update
+    if (updateFields.activeStreamId !== undefined) {
+      fieldsToUpdate.activeStreamId = updateFields.activeStreamId;
+    }
+    
+    // Handle isArchived update
+    if (updateFields.isArchived !== undefined) {
+      fieldsToUpdate.isArchived = updateFields.isArchived;
+    }
+    
+    // Always update the timestamp when any field is modified
+    if (Object.keys(fieldsToUpdate).length > 0) {
+      fieldsToUpdate.updatedAt = Date.now();
+    }
     
     await ctx.db.patch(id, fieldsToUpdate);
     return id;
@@ -195,45 +235,43 @@ export const updateMessages = mutation({
 });
 
 /**
- * Update chat status
+ * Delete a message and all messages after it
  */
-export const updateStatus = mutation({
+export const deleteMessageAndAfter = mutation({
   args: {
-    id: v.id("chats"),
-    status: v.union(v.literal("idle"), v.literal("in-progress")),
+    chatId: v.id("chats"),
+    messageId: v.string(),
   },
   handler: async (ctx, args) => {
-    await ctx.db.patch(args.id, { status: args.status });
-  },
-});
+    const chat = await ctx.db.get(args.chatId);
+    if (!chat) {
+      throw new Error("Chat not found");
+    }
 
-/**
- * Update chat name only
- */
-export const updateName = mutation({
-  args: {
-    id: v.id("chats"),
-    name: v.string(),
-  },
-  handler: async (ctx, args) => {
-    await ctx.db.patch(args.id, {
-      name: args.name,
+    // Find the index of the message to delete
+    const messageIndex = chat.messages.findIndex(
+      (message: any) => message.id === args.messageId
+    );
+
+    if (messageIndex === -1) {
+      throw new Error("Message not found");
+    }
+
+    // Keep only messages before the target message (slice up to but not including the target)
+    const updatedMessages = chat.messages.slice(0, messageIndex);
+
+    // Update the chat with the truncated messages
+    await ctx.db.patch(args.chatId, {
+      messages: updatedMessages,
+      messageCount: updatedMessages.length,
       updatedAt: Date.now(),
     });
-    return args.id;
-  },
-});
 
-/**
- * Update chat isFavorite flag
- */
-export const updateIsFavorite = mutation({
-  args: {
-    id: v.id("chats"),
-    isFavorite: v.boolean(),
-  },
-  handler: async (ctx, args) => {
-    await ctx.db.patch(args.id, { isFavorite: args.isFavorite });
+    return {
+      chatId: args.chatId,
+      deletedFromIndex: messageIndex,
+      remainingMessageCount: updatedMessages.length,
+    };
   },
 });
 
@@ -305,23 +343,15 @@ export const branch = mutation({
 
 /**
  * Archive old chats (soft delete by adding archived flag)
- * This requires updating the schema to include an archived field
+ * @deprecated Use `update` method instead. Will be removed in future version.
  */
 export const archive = mutation({
   args: { id: v.id("chats") },
-  handler: async (ctx, args) => {
-    // For now, we'll just update the name to indicate archived status
-    const chat = await ctx.db.get(args.id);
-    if (!chat) {
-      throw new Error("Chat not found");
-    }
-    
-    await ctx.db.patch(args.id, {
-      updatedAt: Date.now(),
+  handler: async (ctx, args): Promise<any> => {
+    return await ctx.runMutation(api.chats.update, {
+      id: args.id,
       isArchived: true,
     });
-    
-    return args.id;
   },
 });
 

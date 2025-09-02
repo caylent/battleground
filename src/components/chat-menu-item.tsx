@@ -33,8 +33,7 @@ export function ChatMenuItem({ chat }: { chat: Doc<'chats'> }) {
 
   const isActive = (url: string) => pathname === url;
 
-  const handleArchive = useMutation(api.chats.archive);
-  const handleFavorite = useMutation(api.chats.updateIsFavorite);
+  const updateChat = useMutation(api.chats.update);
   const handleDelete = useMutation(api.chats.remove);
 
   return (
@@ -58,16 +57,14 @@ export function ChatMenuItem({ chat }: { chat: Doc<'chats'> }) {
         >
           {chat.isFavorite ? (
             <DropdownMenuItem
-              onClick={() =>
-                handleFavorite({ id: chat._id, isFavorite: false })
-              }
+              onClick={() => updateChat({ id: chat._id, isFavorite: false })}
             >
               <StarOff className="text-muted-foreground" />
               <span>Remove from Favorites</span>
             </DropdownMenuItem>
           ) : (
             <DropdownMenuItem
-              onClick={() => handleFavorite({ id: chat._id, isFavorite: true })}
+              onClick={() => updateChat({ id: chat._id, isFavorite: true })}
             >
               <StarIcon className="text-muted-foreground" />
               <span>Add to Favorites</span>
@@ -83,7 +80,9 @@ export function ChatMenuItem({ chat }: { chat: Doc<'chats'> }) {
             <span>Open in New Tab</span>
           </DropdownMenuItem>
           <DropdownMenuSeparator />
-          <DropdownMenuItem onClick={() => handleArchive({ id: chat._id })}>
+          <DropdownMenuItem
+            onClick={() => updateChat({ id: chat._id, isArchived: true })}
+          >
             <ArchiveIcon className="text-muted-foreground" />
             <span>Archive</span>
           </DropdownMenuItem>

@@ -1,8 +1,10 @@
 import { createAmazonBedrock } from '@ai-sdk/amazon-bedrock';
 import { auth } from '@clerk/nextjs/server';
-import { createIdGenerator, stepCountIs, streamText, type UIMessage } from 'ai';
+import { createIdGenerator, generateId, stepCountIs, streamText } from 'ai';
 import { fetchMutation, fetchQuery } from 'convex/nextjs';
 import type { NextRequest } from 'next/server';
+import { after } from 'next/server';
+import { createResumableStreamContext } from 'resumable-stream';
 import { convertToModelMessageWithAttachments } from '@/lib/convert-to-model-messages';
 import { getRequestCost } from '@/lib/model/get-request-cost';
 import type { TextModelId } from '@/lib/model/model.type';
@@ -10,8 +12,11 @@ import { textModels } from '@/lib/model/models';
 import { rateLimit } from '@/lib/rate-limiter';
 import { uploadAttachments } from '@/lib/upload-attachments';
 import { tools } from '@/tools';
+import type { MyUIMessage } from '@/types/app-message';
 import { api } from '../../../../convex/_generated/api';
 import type { Id } from '../../../../convex/_generated/dataModel';
+
+// const redis = await createClient({ url: process.env.REDIS_URL }).connect();
 
 export async function POST(req: NextRequest) {
   const { userId } = await auth();
@@ -31,7 +36,7 @@ export async function POST(req: NextRequest) {
     trigger = 'submit-message',
   } = (await req.json()) as {
     id: Id<'chats'>;
-    message: UIMessage;
+    message: MyUIMessage;
     modelId?: TextModelId;
     systemPrompt?: string;
     maxTokens?: number;
@@ -45,7 +50,7 @@ export async function POST(req: NextRequest) {
 
   const updatedMessage = await uploadAttachments(userId, message);
 
-  let messages: UIMessage[] = [updatedMessage];
+  let messages: MyUIMessage[] = [updatedMessage];
 
   try {
     const chat = await fetchQuery(api.chats.getById, { id });
@@ -54,11 +59,7 @@ export async function POST(req: NextRequest) {
       return new Response('Chat not found', { status: 404 });
     }
 
-    console.log('trigger', trigger);
-
     if (trigger === 'regenerate-message') {
-      console.log('regenerate-message', updatedMessage.id);
-
       const lastMessageIndex = (chat.messages ?? []).findIndex(
         (msg) => msg.id === updatedMessage.id
       );
@@ -72,9 +73,11 @@ export async function POST(req: NextRequest) {
       messages = [...(chat?.messages ?? []), updatedMessage];
     }
 
-    await fetchMutation(api.chats.updateStatus, {
+    await fetchMutation(api.chats.update, {
       id,
       status: 'in-progress',
+      activeStreamId: '',
+      messages,
     });
 
     const modelInfo = textModels.find((m) => m.id === modelId);
@@ -104,9 +107,9 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    result.consumeStream(); // no await
+    // result.consumeStream(); // no await
 
-    return result.toUIMessageStreamResponse({
+    return result.toUIMessageStreamResponse<MyUIMessage>({
       originalMessages: messages,
       generateMessageId: createIdGenerator({
         prefix: 'msg',
@@ -122,13 +125,29 @@ export async function POST(req: NextRequest) {
               inputTokens: part.totalUsage.inputTokens ?? 0,
               outputTokens: part.totalUsage.outputTokens ?? 0,
             }),
+            ...part.totalUsage,
           };
         }
       },
       onFinish: async ({ messages: newMessages }) => {
-        await fetchMutation(api.chats.updateMessages, {
+        await fetchMutation(api.chats.update, {
           id,
           messages: newMessages,
+        });
+      },
+      async consumeSseStream({ stream }) {
+        const streamId = generateId();
+
+        // Create a resumable stream from the SSE stream
+        const streamContext = createResumableStreamContext({
+          waitUntil: after,
+        });
+        await streamContext.createNewResumableStream(streamId, () => stream);
+
+        // Update the chat with the active stream ID
+        await fetchMutation(api.chats.update, {
+          id,
+          activeStreamId: streamId,
         });
       },
     });
@@ -139,41 +158,3 @@ export async function POST(req: NextRequest) {
     );
   }
 }
-
-// export async function GET(request: Request) {
-//   const streamContext = createResumableStreamContext({
-//     waitUntil: after,
-//     publisher: kv,
-//     subscriber: kv,
-//   });
-
-//   const { searchParams } = new URL(request.url);
-//   const chatId = searchParams.get('chatId');
-
-//   if (!chatId) {
-//     return new Response('id is required', { status: 400 });
-//   }
-
-//   const streamIds = await kv.get<string[]>(`streamIds:${chatId}`);
-
-//   if (!streamIds?.length) {
-//     return new Response('No streams found', { status: 404 });
-//   }
-
-//   const recentStreamId = streamIds.at(-1);
-
-//   if (!recentStreamId) {
-//     return new Response('No recent stream found', { status: 404 });
-//   }
-
-//   const emptyDataStream = createUIMessageStream({
-//     // biome-ignore lint/suspicious/noEmptyBlockStatements: Empty stream
-//     execute: () => {},
-//   });
-
-//   return new Response(
-//     await streamContext.resumableStream(recentStreamId, () =>
-//       emptyDataStream.pipeThrough(new JsonToSseTransformStream())
-//     )
-//   );
-// }

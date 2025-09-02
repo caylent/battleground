@@ -3,7 +3,14 @@ import z from 'zod';
 import type { tools } from '@/tools';
 
 const metadataSchema = z.object({
-  someMetadata: z.string().datetime(),
+  modelId: z.string(),
+  ttft: z.number(),
+  cost: z.number().optional(),
+  inputTokens: z.number().optional(),
+  outputTokens: z.number().optional(),
+  totalTokens: z.number().optional(),
+  reasoningTokens: z.number().optional(),
+  cachedInputTokens: z.number().optional(),
 });
 
 type MyMetadata = z.infer<typeof metadataSchema>;

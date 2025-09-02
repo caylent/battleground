@@ -1,9 +1,9 @@
 import { preloadQuery } from 'convex/nextjs';
-import { Chat } from '@/components/chat';
+import ElementsChat from '@/components/chat';
 import { api } from '../../../../../convex/_generated/api';
 import type { Id } from '../../../../../convex/_generated/dataModel';
 
-export default async function ChatPage({
+export default async function ElementsChatPage({
   params,
 }: {
   params: Promise<{ id: Id<'chats'> }>;
@@ -12,9 +12,5 @@ export default async function ChatPage({
 
   const preloadedChat = await preloadQuery(api.chats.getById, { id });
 
-  return (
-    <main className="mx-auto">
-      <Chat preloadedChat={preloadedChat} />
-    </main>
-  );
+  return <ElementsChat preloadedChat={preloadedChat} />;
 }

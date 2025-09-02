@@ -69,8 +69,8 @@ export function Attachment({
     <Dialog>
       <DialogTrigger asChild>
         <Badge
-          className="max-w-[150px] cursor-pointer gap-2 rounded-md px-2 py-1 hover:bg-secondary/80"
-          variant="secondary"
+          className="max-w-[150px] cursor-pointer gap-2 rounded-md px-2 py-1 transition-all duration-200 hover:scale-105 hover:shadow-md"
+          variant="outline"
         >
           <IconComponent className="h-4 w-4 shrink-0 text-muted-foreground" />
           <span className="truncate text-foreground text-sm">{filename}</span>
