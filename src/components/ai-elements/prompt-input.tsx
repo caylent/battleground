@@ -24,7 +24,7 @@ export type PromptInputProps = HTMLAttributes<HTMLFormElement>;
 export const PromptInput = ({ className, ...props }: PromptInputProps) => (
   <form
     className={cn(
-      'w-full overflow-hidden rounded-xl border bg-background shadow-sm',
+      'w-full divide-y overflow-hidden rounded-xl border bg-background shadow-sm',
       className
     )}
     {...props}
@@ -102,19 +102,13 @@ export const PromptInputTools = ({
   className,
   ...props
 }: PromptInputToolsProps) => (
-  <div
-    className={cn(
-      'flex items-center gap-1',
-      '[&_button:first-child]:rounded-bl-xl',
-      className
-    )}
-    {...props}
-  />
+  <div className={cn('flex items-center gap-1', className)} {...props} />
 );
 
 export type PromptInputButtonProps = ComponentProps<typeof Button>;
 
 export const PromptInputButton = ({
+  variant = 'ghost',
   className,
   size,
   ...props
@@ -125,13 +119,14 @@ export const PromptInputButton = ({
   return (
     <Button
       className={cn(
-        'shrink-0 gap-1.5 rounded-lg text-muted-foreground hover:text-foreground',
+        'shrink-0 gap-1.5 rounded-lg',
+        variant === 'ghost' && 'text-muted-foreground',
         newSize === 'default' && 'px-3',
         className
       )}
       size={newSize}
       type="button"
-      variant={'link'}
+      variant={variant}
       {...props}
     />
   );
@@ -188,8 +183,8 @@ export const PromptInputModelSelectTrigger = ({
 }: PromptInputModelSelectTriggerProps) => (
   <SelectTrigger
     className={cn(
-      'border-none bg-transparent! font-medium text-muted-foreground shadow-none transition-colors',
-      'hover:text-black [&[aria-expanded="true"]]:bg-transparent!',
+      'border-none bg-transparent font-medium text-muted-foreground shadow-none transition-colors',
+      'hover:bg-accent hover:text-foreground [&[aria-expanded="true"]]:bg-accent [&[aria-expanded="true"]]:text-foreground',
       className
     )}
     {...props}
@@ -204,7 +199,7 @@ export const PromptInputModelSelectContent = ({
   className,
   ...props
 }: PromptInputModelSelectContentProps) => (
-  <SelectContent className={cn(className, 'h-96')} {...props} />
+  <SelectContent className={cn(className)} {...props} />
 );
 
 export type PromptInputModelSelectItemProps = ComponentProps<typeof SelectItem>;

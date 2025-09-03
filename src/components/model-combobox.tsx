@@ -33,9 +33,9 @@ export function ModelCombobox({
       <PopoverTrigger asChild>
         <Button
           aria-expanded={open}
-          className="w-[200px] justify-between"
+          className="justify-between font-light"
           role="combobox"
-          variant="outline"
+          variant="ghost"
         >
           {model.id
             ? textModels.find((m) => m.id === model.id)?.name
@@ -43,7 +43,7 @@ export function ModelCombobox({
           <ChevronsUpDownIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="p-0">
+      <PopoverContent align="start" className="p-0" side="top">
         <Command>
           <CommandInput placeholder="Search models..." />
           <CommandList>

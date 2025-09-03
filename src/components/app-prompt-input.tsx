@@ -65,7 +65,7 @@ export const AppPromptInput = ({
       onSubmit={onSubmitAction}
     >
       {files.length > 0 && (
-        <div className="flex flex-row flex-wrap gap-2 px-2 pt-2">
+        <div className="flex flex-row flex-wrap gap-2 p-2">
           {files.map((file) => (
             <Attachment
               alt={file.filename ?? ''}
@@ -86,15 +86,15 @@ export const AppPromptInput = ({
       />
       <PromptInputToolbar>
         <PromptInputTools>
-          {model?.capabilities?.includes('IMAGE') && (
-            <PromptInputButton onClick={openFilePicker}>
-              <PaperclipIcon className="size-3" />
-            </PromptInputButton>
-          )}
           <ModelCombobox
             model={model ?? textModels[0]}
             setModelAction={setModelAction}
           />
+          {model?.capabilities?.includes('IMAGE') && (
+            <PromptInputButton onClick={openFilePicker} variant={'ghost'}>
+              <PaperclipIcon className="size-3" />
+            </PromptInputButton>
+          )}
           {/* <PromptInputModelSelect
             onValueChange={(value) => {
               setModelAction(
