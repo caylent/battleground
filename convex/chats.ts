@@ -1,4 +1,4 @@
-import { internalAction, mutation, query } from "./_generated/server";
+import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 import { api, internal } from "./_generated/api";
 
@@ -153,17 +153,31 @@ export const getStats = query({
 export const create = mutation({
   args: {
     name: v.string(),
-    messages: v.optional(v.array(v.any())),
+    model: v.optional(v.object({
+      id: v.string(),
+      name: v.string(),
+      provider: v.string(),
+      region: v.optional(v.string()),
+      inputCostPerToken: v.optional(v.number()),
+      outputCostPerToken: v.optional(v.number()),
+      capabilities: v.optional(v.array(v.string())),
+    })),
+    systemPrompt: v.optional(v.string()),
+    maxTokens: v.optional(v.number()),
+    temperature: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
     const now = Date.now();
 
     const chatId = await ctx.db.insert("chats", {
       name: args.name,
-      messages: args.messages || [],
-      messageCount: args.messages?.length || 0,
-      status: "idle",
+      messages: [],
+      messageCount: 0,
       updatedAt: now,
+      model: args.model,
+      systemPrompt: args.systemPrompt,
+      maxTokens: args.maxTokens,
+      temperature: args.temperature,
     });
     
     return chatId;
@@ -178,9 +192,20 @@ export const update = mutation({
   args: {
     id: v.id("chats"),
     messages: v.optional(v.array(v.any())),
-    status: v.optional(v.union(v.literal("idle"), v.literal("in-progress"))),
     name: v.optional(v.string()),
     isFavorite: v.optional(v.boolean()),
+    model: v.optional(v.object({
+      id: v.string(),
+      name: v.string(),
+      provider: v.string(),
+      region: v.optional(v.string()),
+      inputCostPerToken: v.optional(v.number()),
+      outputCostPerToken: v.optional(v.number()),
+      capabilities: v.optional(v.array(v.string())),
+    })),
+    systemPrompt: v.optional(v.string()),
+    maxTokens: v.optional(v.number()),
+    temperature: v.optional(v.number()),
     activeStreamId: v.optional(v.string()),
     isArchived: v.optional(v.boolean()),
   },
@@ -193,15 +218,6 @@ export const update = mutation({
     if (updateFields.messages !== undefined) {
       fieldsToUpdate.messages = updateFields.messages;
       fieldsToUpdate.messageCount = updateFields.messages.length;
-      // Set status to idle when messages are updated (unless explicitly overridden)
-      if (updateFields.status === undefined) {
-        fieldsToUpdate.status = "idle";
-      }
-    }
-    
-    // Handle status update
-    if (updateFields.status !== undefined) {
-      fieldsToUpdate.status = updateFields.status;
     }
     
     // Handle name update
@@ -222,6 +238,26 @@ export const update = mutation({
     // Handle isArchived update
     if (updateFields.isArchived !== undefined) {
       fieldsToUpdate.isArchived = updateFields.isArchived;
+    }
+
+    // Handle modelId update
+    if (updateFields.model !== undefined) {
+      fieldsToUpdate.model = updateFields.model;
+    }
+
+    // Handle systemPrompt update
+    if (updateFields.systemPrompt !== undefined) {
+      fieldsToUpdate.systemPrompt = updateFields.systemPrompt;
+    }
+
+    // Handle maxTokens update
+    if (updateFields.maxTokens !== undefined) {
+      fieldsToUpdate.maxTokens = updateFields.maxTokens;
+    }
+
+    // Handle temperature update
+    if (updateFields.temperature !== undefined) {
+      fieldsToUpdate.temperature = updateFields.temperature;
     }
     
     // Always update the timestamp when any field is modified
@@ -332,7 +368,6 @@ export const branch = mutation({
       messages: branchedMessages,
       updatedAt: now,
       messageCount: branchedMessages.length,
-      status: "idle",
       parentChatId: args.id, // Store reference to original chat
       branchFromIndex: args.branchFromIndex, // Store the branching point
     });

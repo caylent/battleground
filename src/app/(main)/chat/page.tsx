@@ -10,15 +10,15 @@ import { toast } from 'sonner';
 import { AppPromptInput } from '@/components/app-prompt-input';
 import CaylentLogo from '@/components/caylent-logo';
 import { ChatSuggestions } from '@/components/chat-suggestions';
-import { textModels } from '@/lib/model/models';
+import { DEFAULT_TEXT_MODEL, type TextModel } from '@/lib/model/models';
 import { api } from '../../../../convex/_generated/api';
 
-export default function ElementsChatMainPage() {
+export default function ChatMainPage() {
   const router = useRouter();
 
   const [input, setInput] = useState('');
   const [files, setFiles] = useState<FileUIPart[]>([]);
-  const [model, setModel] = useState<string>(textModels.at(0)?.id ?? '');
+  const [model, setModel] = useState<TextModel>(DEFAULT_TEXT_MODEL);
   const [chatId, setChatId] = useState<string | null>(null);
   const createChat = useMutation(api.chats.create);
 
@@ -45,7 +45,7 @@ export default function ElementsChatMainPage() {
     if (!input.trim()) return;
 
     try {
-      const id = await createChat({ name: 'New Chat' });
+      const id = await createChat({ name: 'New Chat', model });
 
       setChatId(id);
 

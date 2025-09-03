@@ -9,7 +9,8 @@ export type Provider =
   | 'OpenAI'
   | 'AI21'
   | 'Luma Labs'
-  | 'Writer';
+  | 'Writer'
+  | (string & {});
 
 export type ImageModelId =
   | 'amazon.titan-image-generator-v1'
@@ -21,7 +22,12 @@ export type ImageModelId =
 
 export type VideoModelId = 'amazon.nova-reel-v1:0' | 'luma.ray-v2:0';
 
-export type TextModelCapabilities = 'IMAGE' | 'TOOLS' | 'REASONING' | 'VIDEO';
+export type TextModelCapabilities =
+  | 'IMAGE'
+  | 'TOOLS'
+  | 'REASONING'
+  | 'VIDEO'
+  | (string & {});
 
 export type TextModel = {
   provider: Provider;
@@ -33,7 +39,9 @@ export type TextModel = {
   capabilities?: TextModelCapabilities[];
 };
 
-export const textModels: TextModel[] = [
+export const DEFAULT_TEXT_MODEL_ID = 'us.amazon.nova-micro-v1:0';
+
+export const textModels = [
   {
     provider: 'Amazon',
     id: 'us.amazon.nova-micro-v1:0',
@@ -344,4 +352,7 @@ export const textModels: TextModel[] = [
     name: 'Palmyra X5',
     region: 'us-west-2',
   },
-];
+] satisfies TextModel[];
+
+export const DEFAULT_TEXT_MODEL =
+  textModels.find((m) => m.id === DEFAULT_TEXT_MODEL_ID) ?? textModels[0];

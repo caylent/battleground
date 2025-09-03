@@ -72,7 +72,18 @@ export function Attachment({
           className="max-w-[150px] cursor-pointer gap-2 rounded-md px-2 py-1 transition-all duration-200 hover:scale-105 hover:shadow-md"
           variant="outline"
         >
-          <IconComponent className="h-4 w-4 shrink-0 text-muted-foreground" />
+          {isImage && src ? (
+            <Image
+              alt={alt}
+              className="h-4 w-4 shrink-0 rounded-md"
+              height={16}
+              src={src}
+              unoptimized
+              width={16}
+            />
+          ) : (
+            <IconComponent className="h-4 w-4 shrink-0 text-muted-foreground" />
+          )}
           <span className="truncate text-foreground text-sm">{filename}</span>
           {onDeleteAction && (
             <button

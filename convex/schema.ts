@@ -4,7 +4,6 @@ import { v } from "convex/values";
 export const chatSchema = defineTable({
   name: v.string(),
   messages: v.array(v.any()),
-  status: v.union(v.literal("idle"), v.literal("in-progress")),
   updatedAt: v.number(),
   messageCount: v.optional(v.number()), // Cache for performance
   parentChatId: v.optional(v.id("chats")), // Reference to the original chat if this is a branch
@@ -12,6 +11,18 @@ export const chatSchema = defineTable({
   isFavorite: v.optional(v.boolean()),
   isArchived: v.optional(v.boolean()),
   activeStreamId: v.optional(v.string()),
+  model: v.optional(v.object({
+    id: v.string(),
+    name: v.string(),
+    provider: v.string(),
+    region: v.optional(v.string()),
+    inputCostPerToken: v.optional(v.number()),
+    outputCostPerToken: v.optional(v.number()),
+    capabilities: v.optional(v.array(v.string())),
+  })),
+  systemPrompt: v.optional(v.string()),
+  maxTokens: v.optional(v.number()),
+  temperature: v.optional(v.number()),
 });
 
 export const promptSchema = defineTable({

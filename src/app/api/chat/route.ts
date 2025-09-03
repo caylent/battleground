@@ -80,7 +80,6 @@ export async function POST(req: NextRequest) {
 
     await fetchMutation(api.chats.update, {
       id,
-      status: 'in-progress',
       activeStreamId: '',
       messages,
       name: chatName,
@@ -115,12 +114,7 @@ export async function POST(req: NextRequest) {
       onFinish: () => {
         totalResponseTime = Date.now() - start;
       },
-      onError: (error) => {
-        console.error(error);
-      },
     });
-
-    // result.consumeStream(); // no await
 
     return result.toUIMessageStreamResponse<MyUIMessage>({
       originalMessages: messages,

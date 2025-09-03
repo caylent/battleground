@@ -2,7 +2,7 @@
 
 import { useChat } from '@ai-sdk/react';
 import { DefaultChatTransport, type FileUIPart } from 'ai';
-import { type Preloaded, usePreloadedQuery } from 'convex/react';
+import { type Preloaded, useMutation, usePreloadedQuery } from 'convex/react';
 import { useEffect, useState } from 'react';
 import {
   Conversation,
@@ -18,7 +18,8 @@ import {
 import { Response } from '@/components/ai-elements/response';
 import { textModels } from '@/lib/model/models';
 import type { MyUIMessage } from '@/types/app-message';
-import type { api } from '../../convex/_generated/api';
+import { api } from '../../convex/_generated/api';
+import type { Id } from '../../convex/_generated/dataModel';
 import { AppPromptInput } from './app-prompt-input';
 import AssistantActions from './assistant-actions';
 import { Attachment } from './attachment';
@@ -33,8 +34,8 @@ export function Chat({
 }) {
   const [input, setInput] = useState('');
   const [files, setFiles] = useState<FileUIPart[]>([]);
-  const [model, setModel] = useState<string>(textModels.at(0)?.id ?? '');
   const chat = usePreloadedQuery(preloadedChat);
+  const updateChat = useMutation(api.chats.update);
 
   const { messages, sendMessage, status, regenerate, setMessages } =
     useChat<MyUIMessage>({
@@ -42,17 +43,11 @@ export function Chat({
       resume: true,
       messages: chat?.messages || [],
       transport: new DefaultChatTransport({
-        prepareSendMessagesRequest: ({
-          messages: sendMessages,
-          trigger,
-          body,
-        }) => {
+        prepareSendMessagesRequest: ({ messages: sendMessages, trigger }) => {
           return {
             body: {
-              ...body,
-              messages: undefined,
-              message: sendMessages.at(-1),
               id: chat?._id,
+              message: sendMessages.at(-1),
               trigger,
             },
           };
@@ -65,18 +60,17 @@ export function Chat({
   }, [chat, setMessages]);
 
   const handleSubmit = (e: React.FormEvent) => {
-    console.log('handleSubmit', model);
     e.preventDefault();
     if (input.trim()) {
-      sendMessage({ text: input, files }, { body: { modelId: model } });
+      sendMessage({ text: input, files });
       setInput('');
       setFiles([]);
     }
   };
 
   return (
-    <div className="relative mx-auto size-full h-screen max-w-4xl p-2">
-      <div className="flex h-full flex-col">
+    <div className="relative mx-auto size-full h-screen py-2 pr-2">
+      <div className="mx-auto flex h-full max-w-4xl flex-col">
         <Conversation className="h-full">
           <ConversationContent>
             {messages.map((message, messageIdx) => {
@@ -146,10 +140,7 @@ export function Chat({
                           <AssistantActions
                             message={message}
                             onRegenerate={() =>
-                              regenerate({
-                                messageId: message.id,
-                                body: { modelId: model },
-                              })
+                              regenerate({ messageId: message.id })
                             }
                           />
                         )}
@@ -165,11 +156,13 @@ export function Chat({
         <AppPromptInput
           files={files}
           input={input}
-          model={model}
+          model={chat?.model ?? textModels[0]}
           onSubmitAction={handleSubmit}
           setFilesAction={setFiles}
           setInputAction={setInput}
-          setModelAction={setModel}
+          setModelAction={(model) => {
+            updateChat({ id: chat?._id as Id<'chats'>, model });
+          }}
           status={status}
         />
       </div>

@@ -16,7 +16,7 @@ import {
   PromptInputToolbar,
   PromptInputTools,
 } from '@/components/ai-elements/prompt-input';
-import { textModels } from '@/lib/model/models';
+import { type TextModel, textModels } from '@/lib/model/models';
 import { Attachment } from './attachment';
 
 export type AppPromptInputProps = {
@@ -26,8 +26,8 @@ export type AppPromptInputProps = {
   setInputAction: (input: string) => void;
   files: FileUIPart[];
   setFilesAction: (files: FileUIPart[]) => void;
-  model: string;
-  setModelAction: (model: string) => void;
+  model?: TextModel;
+  setModelAction: (model: TextModel) => void;
 };
 
 export const AppPromptInput = ({
@@ -64,7 +64,7 @@ export const AppPromptInput = ({
       onSubmit={onSubmitAction}
     >
       {files.length > 0 && (
-        <div className="flex flex-row flex-wrap gap-2 p-2">
+        <div className="flex flex-row flex-wrap gap-2 px-2 pt-2">
           {files.map((file) => (
             <Attachment
               alt={file.filename ?? ''}
@@ -90,9 +90,11 @@ export const AppPromptInput = ({
           </PromptInputButton>
           <PromptInputModelSelect
             onValueChange={(value) => {
-              setModelAction(value);
+              setModelAction(
+                textModels.find((m) => m.id === value) ?? textModels[0]
+              );
             }}
-            value={model}
+            value={model ? model.id : textModels[0].id}
           >
             <PromptInputModelSelectTrigger>
               <PromptInputModelSelectValue />
