@@ -27,15 +27,15 @@ export default function ChatBackground({
   }
 
   return (
-    <div className="relative min-h-screen w-full bg-background">
-      {/* Purple Glow Left */}
+    <div className="relative min-h-screen w-full bg-white">
+      {/* Purple Glow Top */}
       <div
         className="absolute inset-0 z-0"
         style={{
           background: '#ffffff',
           backgroundImage: `
         radial-gradient(
-          circle at top left,
+          circle at top center,
           rgba(173, 109, 244, 0.5),
           transparent 70%
         )

@@ -4,6 +4,7 @@ import { CheckIcon, CopyIcon, RefreshCcwIcon } from 'lucide-react';
 import { useState } from 'react';
 import type { MyUIMessage } from '@/types/app-message';
 import { Action, Actions } from './ai-elements/actions';
+import MetadataHoverCard from './metadata-hovercard';
 
 export type AssistantActionsProps = {
   message: MyUIMessage;
@@ -43,6 +44,8 @@ export default function AssistantActions({
           <CopyIcon className="size-3" />
         )}
       </Action>
+
+      {message.metadata && <MetadataHoverCard metadata={message.metadata} />}
     </Actions>
   );
 }

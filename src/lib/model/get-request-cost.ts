@@ -1,4 +1,3 @@
-import type { TextModelId } from './model.type';
 import { textModels } from './models';
 
 export const getRequestCost = ({
@@ -6,7 +5,7 @@ export const getRequestCost = ({
   inputTokens,
   outputTokens,
 }: {
-  modelId: TextModelId;
+  modelId: string;
   inputTokens: number;
   outputTokens: number;
 }) => {

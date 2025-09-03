@@ -88,7 +88,7 @@ export const ChatSuggestions = ({
 
               {/* Main content */}
               <div className="relative flex items-center justify-between">
-                <p className="line-clamp-1 font-medium text-foreground/90 text-sm leading-relaxed transition-colors duration-300 group-hover:text-foreground">
+                <p className="line-clamp-1 font-medium text-foreground/90 text-sm leading-relaxed group-hover:text-foreground">
                   {suggestion.text}
                 </p>
                 <ChevronRight className="ml-2 size-4 text-muted-foreground/50 transition-all duration-300 group-hover:translate-x-1 group-hover:text-primary/80" />

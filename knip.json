@@ -1,4 +1,4 @@
 {
   "entry": ["src/app/layout.tsx"],
-  "project": ["src/**/*.ts", "src/**/*.tsx", "!src/components/ui/**", "!src/components/assistant-ui/**"]
+  "project": ["src/**/*.ts", "src/**/*.tsx"]
 }

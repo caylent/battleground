@@ -1,25 +1,40 @@
 'use client';
 
-import type { ChatStatus, FileUIPart } from 'ai';
+import { useChat } from '@ai-sdk/react';
+import { DefaultChatTransport, type FileUIPart } from 'ai';
+import { useMutation } from 'convex/react';
 import { motion } from 'framer-motion';
-import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { useTheme } from 'next-themes';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { AppPromptInput } from '@/components/app-prompt-input';
+import CaylentLogo from '@/components/caylent-logo';
 import { ChatSuggestions } from '@/components/chat-suggestions';
 import { textModels } from '@/lib/model/models';
-import type { MyUIMessage } from '@/types/app-message';
+import { api } from '../../../../convex/_generated/api';
 
 export default function ElementsChatMainPage() {
-  const { resolvedTheme: theme } = useTheme();
   const router = useRouter();
 
   const [input, setInput] = useState('');
   const [files, setFiles] = useState<FileUIPart[]>([]);
   const [model, setModel] = useState<string>(textModels.at(0)?.id ?? '');
-  const [status, setStatus] = useState<ChatStatus>('ready');
+  const [chatId, setChatId] = useState<string | null>(null);
+  const createChat = useMutation(api.chats.create);
+
+  const { sendMessage, status } = useChat({
+    transport: new DefaultChatTransport({
+      prepareSendMessagesRequest: ({ messages: sendMessages, body }) => {
+        return {
+          body: {
+            ...body,
+            messages: undefined,
+            message: sendMessages.at(-1),
+          },
+        };
+      },
+    }),
+  });
 
   const handleSuggestionClick = (suggestion: string) => {
     setInput(suggestion);
@@ -30,35 +45,24 @@ export default function ElementsChatMainPage() {
     if (!input.trim()) return;
 
     try {
-      setStatus('submitted');
+      const id = await createChat({ name: 'New Chat' });
 
-      const response = await fetch('/api/chat/create', {
-        method: 'POST',
-        body: JSON.stringify({
-          message: {
-            id: 'temp-id',
-            role: 'user',
-            parts: [...files, { type: 'text', text: input }],
-          } satisfies MyUIMessage,
-        }),
-      });
+      setChatId(id);
 
-      if (!response.ok) {
-        toast.error('Failed to create chat');
-        setStatus('ready');
-        return;
-      }
-
-      const { chatId } = await response.json();
-
-      // Navigate to the new chat
-      router.push(`/chat/${chatId}`);
+      sendMessage({ text: input, files }, { body: { modelId: model, id } });
     } catch (error) {
       console.error('Failed to create chat:', error);
       toast.error('Failed to create chat');
-      setStatus('ready');
     }
   };
+
+  useEffect(() => {
+    // we want to wait until the stream has started before routing to the
+    // chat page so the stream can resume properly
+    if (status === 'streaming') {
+      router.push(`/chat/${chatId}`);
+    }
+  }, [status, router, chatId]);
 
   return (
     <div className="mx-auto max-w-4xl p-8">
@@ -67,7 +71,7 @@ export default function ElementsChatMainPage() {
           <div className="flex size-full flex-col justify-center gap-4 px-8 text-center md:mt-20">
             <motion.div
               animate={{ opacity: 1, y: 0 }}
-              className="font-orbitron font-semibold text-2xl tracking-wider"
+              className="font-roboto font-semibold text-2xl tracking-wider"
               exit={{ opacity: 0, y: 10 }}
               initial={{ opacity: 0, y: 10 }}
               transition={{ delay: 0.5 }}
@@ -76,23 +80,13 @@ export default function ElementsChatMainPage() {
             </motion.div>
             <motion.div
               animate={{ opacity: 1, y: 0 }}
-              className="font-orbitron text-muted-foreground/65 text-sm tracking-wider"
+              className="font-roboto text-muted-foreground/65 text-sm tracking-wider"
               exit={{ opacity: 0, y: 10 }}
               initial={{ opacity: 0, y: 10 }}
               transition={{ delay: 0.6 }}
             >
               Built by
-              <Image
-                alt="Caylent Logo"
-                className="inline-block"
-                height={30}
-                src={
-                  theme === 'dark'
-                    ? '/caylent-logo-dark.png'
-                    : '/caylent-logo-light.png'
-                }
-                width={100}
-              />
+              <CaylentLogo className="inline-block" />
             </motion.div>
           </div>
 

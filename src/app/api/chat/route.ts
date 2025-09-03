@@ -6,8 +6,8 @@ import type { NextRequest } from 'next/server';
 import { after } from 'next/server';
 import { createResumableStreamContext } from 'resumable-stream';
 import { convertToModelMessageWithAttachments } from '@/lib/convert-to-model-messages';
+import { generateChatName } from '@/lib/generate-chat-name';
 import { getRequestCost } from '@/lib/model/get-request-cost';
-import type { TextModelId } from '@/lib/model/model.type';
 import { textModels } from '@/lib/model/models';
 import { rateLimit } from '@/lib/rate-limiter';
 import { uploadAttachments } from '@/lib/upload-attachments';
@@ -37,7 +37,7 @@ export async function POST(req: NextRequest) {
   } = (await req.json()) as {
     id: Id<'chats'>;
     message: MyUIMessage;
-    modelId?: TextModelId;
+    modelId?: string;
     systemPrompt?: string;
     maxTokens?: number;
     temperature?: number;
@@ -73,11 +73,17 @@ export async function POST(req: NextRequest) {
       messages = [...(chat?.messages ?? []), updatedMessage];
     }
 
+    let chatName: string | undefined;
+    if (messages.length === 1) {
+      chatName = await generateChatName(userId, messages[0]);
+    }
+
     await fetchMutation(api.chats.update, {
       id,
       status: 'in-progress',
       activeStreamId: '',
       messages,
+      name: chatName,
     });
 
     const modelInfo = textModels.find((m) => m.id === modelId);
@@ -87,6 +93,7 @@ export async function POST(req: NextRequest) {
     })(modelId);
 
     let ttft: number = Number.NaN;
+    let totalResponseTime: number = Number.NaN;
     const start = Date.now();
 
     const result = streamText({
@@ -105,6 +112,12 @@ export async function POST(req: NextRequest) {
           ttft = Date.now() - start;
         }
       },
+      onFinish: () => {
+        totalResponseTime = Date.now() - start;
+      },
+      onError: (error) => {
+        console.error(error);
+      },
     });
 
     // result.consumeStream(); // no await
@@ -120,6 +133,7 @@ export async function POST(req: NextRequest) {
           return {
             modelId,
             ttft,
+            totalResponseTime,
             cost: getRequestCost({
               modelId,
               inputTokens: part.totalUsage.inputTokens ?? 0,
@@ -152,6 +166,7 @@ export async function POST(req: NextRequest) {
       },
     });
   } catch (err: any) {
+    console.error(err);
     return Response.json(
       { message: err.message },
       { status: err.httpStatusCode }

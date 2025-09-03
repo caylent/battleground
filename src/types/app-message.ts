@@ -5,6 +5,7 @@ import type { tools } from '@/tools';
 const metadataSchema = z.object({
   modelId: z.string(),
   ttft: z.number(),
+  totalResponseTime: z.number(),
   cost: z.number().optional(),
   inputTokens: z.number().optional(),
   outputTokens: z.number().optional(),

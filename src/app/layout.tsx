@@ -2,7 +2,10 @@ import { ClerkProvider } from '@clerk/nextjs';
 import type { Metadata } from 'next';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import './globals.css';
+import { GeistMono } from 'geist/font/mono';
+import { GeistSans } from 'geist/font/sans';
 import { ConvexClientProvider } from '@/components/convex-client-provider';
+import { cn } from '@/lib/utils';
 import { ThemeProvider } from './theme-provider';
 
 export const metadata: Metadata = {
@@ -17,10 +20,17 @@ export default function RootLayout({
 }>) {
   return (
     <ClerkProvider>
-      <html className="overflow-hidden" lang="en">
-        <body className="overflow-hidden">
+      <html
+        className={cn(
+          'overflow-hidden',
+          GeistSans.variable,
+          GeistMono.variable
+        )}
+        lang="en"
+      >
+        <body className={'overflow-hidden'}>
           <ConvexClientProvider>
-            <ThemeProvider attribute="class" defaultTheme="light">
+            <ThemeProvider attribute="class" defaultTheme="dark">
               <TooltipProvider delayDuration={0}>
                 <div className="flex h-screen w-screen flex-row overflow-hidden">
                   {children}

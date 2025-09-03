@@ -10,7 +10,7 @@ import {
   StarOff,
   Trash2,
 } from 'lucide-react';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { api } from '../../convex/_generated/api';
 import type { Doc } from '../../convex/_generated/dataModel';
 import {
@@ -29,6 +29,7 @@ import {
 
 export function ChatMenuItem({ chat }: { chat: Doc<'chats'> }) {
   const { isMobile } = useSidebar();
+  const router = useRouter();
   const pathname = usePathname();
 
   const isActive = (url: string) => pathname === url;
@@ -86,7 +87,14 @@ export function ChatMenuItem({ chat }: { chat: Doc<'chats'> }) {
             <ArchiveIcon className="text-muted-foreground" />
             <span>Archive</span>
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => handleDelete({ id: chat._id })}>
+          <DropdownMenuItem
+            onClick={() => {
+              handleDelete({ id: chat._id });
+              if (isActive(`/chat/${chat._id}`)) {
+                router.push('/chat');
+              }
+            }}
+          >
             <Trash2 className="text-muted-foreground" />
             <span>Delete</span>
           </DropdownMenuItem>

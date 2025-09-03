@@ -22,12 +22,11 @@ import type { api } from '../../convex/_generated/api';
 import { AppPromptInput } from './app-prompt-input';
 import AssistantActions from './assistant-actions';
 import { Attachment } from './attachment';
-import ChatBackground from './backgrounds/chat-background';
 import { StatefulImage } from './stateful-image';
 import { Spinner } from './ui/shadcn-io/spinner';
 import UserActions from './user-actions';
 
-export default function Chat({
+export function Chat({
   preloadedChat,
 }: {
   preloadedChat: Preloaded<typeof api.chats.getById>;
@@ -37,17 +36,21 @@ export default function Chat({
   const [model, setModel] = useState<string>(textModels.at(0)?.id ?? '');
   const chat = usePreloadedQuery(preloadedChat);
 
-  const isFirstMessage = chat?.messages.length === 1;
-
   const { messages, sendMessage, status, regenerate, setMessages } =
     useChat<MyUIMessage>({
       id: chat?._id,
       resume: true,
-      messages: isFirstMessage ? [] : chat?.messages || [],
+      messages: chat?.messages || [],
       transport: new DefaultChatTransport({
-        prepareSendMessagesRequest: ({ messages: sendMessages, trigger }) => {
+        prepareSendMessagesRequest: ({
+          messages: sendMessages,
+          trigger,
+          body,
+        }) => {
           return {
             body: {
+              ...body,
+              messages: undefined,
               message: sendMessages.at(-1),
               id: chat?._id,
               trigger,
@@ -61,24 +64,18 @@ export default function Chat({
     setMessages(chat?.messages || []);
   }, [chat, setMessages]);
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: We only want to send this once
-  useEffect(() => {
-    if (isFirstMessage) {
-      sendMessage(chat.messages[0]);
-    }
-  }, []);
-
   const handleSubmit = (e: React.FormEvent) => {
+    console.log('handleSubmit', model);
     e.preventDefault();
     if (input.trim()) {
-      sendMessage({ text: input, files }, { body: { model } });
+      sendMessage({ text: input, files }, { body: { modelId: model } });
       setInput('');
       setFiles([]);
     }
   };
 
   return (
-    <div className="relative mx-auto size-full h-screen max-w-4xl p-4">
+    <div className="relative mx-auto size-full h-screen max-w-4xl p-2">
       <div className="flex h-full flex-col">
         <Conversation className="h-full">
           <ConversationContent>
@@ -149,7 +146,10 @@ export default function Chat({
                           <AssistantActions
                             message={message}
                             onRegenerate={() =>
-                              regenerate({ messageId: message.id })
+                              regenerate({
+                                messageId: message.id,
+                                body: { modelId: model },
+                              })
                             }
                           />
                         )}

@@ -1,28 +1,39 @@
-import type { TextModel } from './model.type';
+export type Provider =
+  | 'Amazon'
+  | 'Stability AI'
+  | 'Anthropic'
+  | 'Deepseek'
+  | 'Cohere'
+  | 'Meta'
+  | 'Mistral'
+  | 'OpenAI'
+  | 'AI21'
+  | 'Luma Labs'
+  | 'Writer';
+
+export type ImageModelId =
+  | 'amazon.titan-image-generator-v1'
+  | 'amazon.titan-image-generator-v2:0'
+  | 'amazon.nova-canvas-v1:0'
+  | 'stability.stable-image-core-v1:1'
+  | 'stability.sd3-5-large-v1:0'
+  | 'stability.stable-image-ultra-v1:1';
+
+export type VideoModelId = 'amazon.nova-reel-v1:0' | 'luma.ray-v2:0';
+
+export type TextModelCapabilities = 'IMAGE' | 'TOOLS' | 'REASONING' | 'VIDEO';
+
+export type TextModel = {
+  provider: Provider;
+  name: string;
+  id: string;
+  region?: 'us-east-1' | 'us-west-2' | (string & {});
+  inputCostPerToken?: number;
+  outputCostPerToken?: number;
+  capabilities?: TextModelCapabilities[];
+};
 
 export const textModels: TextModel[] = [
-  {
-    provider: 'Amazon',
-    id: 'amazon.titan-text-lite-v1',
-    name: 'Titan Text Lite',
-    inputCostPerToken: 0.000_15 / 1e3,
-    outputCostPerToken: 0.0002 / 1e3,
-  },
-  {
-    provider: 'Amazon',
-    id: 'amazon.titan-text-express-v1',
-    name: 'Titan Text Express',
-    inputCostPerToken: 0.0002 / 1e3,
-    outputCostPerToken: 0.0006 / 1e3,
-  },
-  {
-    provider: 'Amazon',
-    id: 'amazon.titan-text-premier-v1:0',
-    region: 'us-east-1',
-    name: 'Titan Text Premier',
-    inputCostPerToken: 0.0005 / 1e3,
-    outputCostPerToken: 0.0015 / 1e3,
-  },
   {
     provider: 'Amazon',
     id: 'us.amazon.nova-micro-v1:0',
@@ -30,6 +41,7 @@ export const textModels: TextModel[] = [
     name: 'Nova Micro',
     inputCostPerToken: 0.000_003_5 / 1e3,
     outputCostPerToken: 0.000_14 / 1e3,
+    capabilities: ['TOOLS'],
   },
   {
     provider: 'Amazon',
@@ -38,7 +50,7 @@ export const textModels: TextModel[] = [
     name: 'Nova Lite',
     inputCostPerToken: 0.000_06 / 1e3,
     outputCostPerToken: 0.000_24 / 1e3,
-    capabilities: ['ATTACHMENTS'],
+    capabilities: ['IMAGE', 'TOOLS', 'VIDEO'],
   },
   {
     provider: 'Amazon',
@@ -47,7 +59,7 @@ export const textModels: TextModel[] = [
     name: 'Nova Pro',
     inputCostPerToken: 0.0008 / 1e3,
     outputCostPerToken: 0.0032 / 1e3,
-    capabilities: ['ATTACHMENTS'],
+    capabilities: ['IMAGE', 'TOOLS', 'VIDEO'],
   },
   {
     provider: 'Amazon',
@@ -56,7 +68,7 @@ export const textModels: TextModel[] = [
     name: 'Nova Premier',
     inputCostPerToken: 0.0025 / 1e3,
     outputCostPerToken: 0.0125 / 1e3,
-    capabilities: ['ATTACHMENTS'],
+    capabilities: ['IMAGE', 'REASONING', 'TOOLS', 'VIDEO'],
   },
   {
     provider: 'Anthropic',
@@ -64,6 +76,7 @@ export const textModels: TextModel[] = [
     name: 'Claude 3 Haiku',
     inputCostPerToken: 0.000_25 / 1e3,
     outputCostPerToken: 0.001_25 / 1e3,
+    capabilities: ['TOOLS', 'IMAGE'],
   },
   {
     provider: 'Anthropic',
@@ -72,6 +85,7 @@ export const textModels: TextModel[] = [
     region: 'us-west-2',
     inputCostPerToken: 0.0008 / 1e3,
     outputCostPerToken: 0.0004 / 1e3,
+    capabilities: ['TOOLS'],
   },
   {
     provider: 'Anthropic',
@@ -79,7 +93,7 @@ export const textModels: TextModel[] = [
     name: 'Claude 3 Sonnet',
     inputCostPerToken: 0.003 / 1e3,
     outputCostPerToken: 0.015 / 1e3,
-    capabilities: ['ATTACHMENTS'],
+    capabilities: ['IMAGE', 'TOOLS'],
   },
   {
     provider: 'Anthropic',
@@ -88,7 +102,7 @@ export const textModels: TextModel[] = [
     region: 'us-west-2',
     inputCostPerToken: 0.015 / 1e3,
     outputCostPerToken: 0.075 / 1e3,
-    capabilities: ['ATTACHMENTS'],
+    capabilities: ['IMAGE', 'TOOLS'],
   },
   {
     provider: 'Anthropic',
@@ -96,7 +110,7 @@ export const textModels: TextModel[] = [
     name: 'Claude 3.5 Sonnet',
     inputCostPerToken: 0.003 / 1e3,
     outputCostPerToken: 0.015 / 1e3,
-    capabilities: ['ATTACHMENTS'],
+    capabilities: ['IMAGE', 'TOOLS'],
   },
   {
     provider: 'Anthropic',
@@ -105,7 +119,7 @@ export const textModels: TextModel[] = [
     name: 'Claude 3.5 Sonnet V2',
     inputCostPerToken: 0.003 / 1e3,
     outputCostPerToken: 0.015 / 1e3,
-    capabilities: ['ATTACHMENTS'],
+    capabilities: ['IMAGE', 'TOOLS'],
   },
   {
     provider: 'Anthropic',
@@ -113,7 +127,7 @@ export const textModels: TextModel[] = [
     name: 'Claude 3.7 Sonnet',
     inputCostPerToken: 0.003 / 1e3,
     outputCostPerToken: 0.015 / 1e3,
-    capabilities: ['ATTACHMENTS'],
+    capabilities: ['IMAGE', 'TOOLS'],
   },
   {
     provider: 'Anthropic',
@@ -122,7 +136,7 @@ export const textModels: TextModel[] = [
     name: 'Claude 4 Sonnet',
     inputCostPerToken: 0.003 / 1e3,
     outputCostPerToken: 0.015 / 1e3,
-    capabilities: ['ATTACHMENTS'],
+    capabilities: ['IMAGE', 'TOOLS', 'REASONING'],
   },
   {
     provider: 'Anthropic',
@@ -131,7 +145,16 @@ export const textModels: TextModel[] = [
     name: 'Claude 4 Opus',
     inputCostPerToken: 0.015 / 1e3,
     outputCostPerToken: 0.075 / 1e3,
-    capabilities: ['ATTACHMENTS'],
+    capabilities: ['IMAGE', 'TOOLS', 'REASONING'],
+  },
+  {
+    provider: 'Anthropic',
+    id: 'us.anthropic.claude-opus-4-1-20250805-v1:0',
+    region: 'us-east-1',
+    name: 'Claude 4.1 Opus',
+    inputCostPerToken: 0.015 / 1e3,
+    outputCostPerToken: 0.075 / 1e3,
+    capabilities: ['IMAGE', 'TOOLS', 'REASONING'],
   },
   {
     provider: 'Deepseek',
@@ -140,6 +163,7 @@ export const textModels: TextModel[] = [
     region: 'us-west-2',
     inputCostPerToken: 0.001_35 / 1e3,
     outputCostPerToken: 0.0054 / 1e3,
+    capabilities: ['TOOLS', 'REASONING'],
   },
   {
     provider: 'Cohere',
@@ -148,6 +172,7 @@ export const textModels: TextModel[] = [
     region: 'us-west-2',
     inputCostPerToken: 0.0005 / 1e3,
     outputCostPerToken: 0.0015 / 1e3,
+    capabilities: ['TOOLS'],
   },
   {
     provider: 'Cohere',
@@ -155,6 +180,7 @@ export const textModels: TextModel[] = [
     name: 'Command R+',
     inputCostPerToken: 0.003 / 1e3,
     outputCostPerToken: 0.015 / 1e3,
+    capabilities: ['TOOLS'],
   },
   {
     provider: 'Meta',
@@ -177,6 +203,7 @@ export const textModels: TextModel[] = [
     region: 'us-west-2',
     inputCostPerToken: 0.000_22 / 1e3,
     outputCostPerToken: 0.000_22 / 1e3,
+    capabilities: ['TOOLS'],
   },
   {
     provider: 'Meta',
@@ -185,6 +212,7 @@ export const textModels: TextModel[] = [
     region: 'us-west-2',
     inputCostPerToken: 0.000_72 / 1e3,
     outputCostPerToken: 0.000_72 / 1e3,
+    capabilities: ['TOOLS'],
   },
   {
     provider: 'Meta',
@@ -193,6 +221,7 @@ export const textModels: TextModel[] = [
     region: 'us-west-2',
     inputCostPerToken: 0.0024 / 1e3,
     outputCostPerToken: 0.0024 / 1e3,
+    capabilities: ['TOOLS'],
   },
   {
     provider: 'Meta',
@@ -201,6 +230,7 @@ export const textModels: TextModel[] = [
     region: 'us-west-2',
     inputCostPerToken: 0.0001 / 1e3,
     outputCostPerToken: 0.0001 / 1e3,
+    capabilities: ['TOOLS'],
   },
   {
     provider: 'Meta',
@@ -209,6 +239,7 @@ export const textModels: TextModel[] = [
     region: 'us-west-2',
     inputCostPerToken: 0.000_15 / 1e3,
     outputCostPerToken: 0.000_15 / 1e3,
+    capabilities: ['TOOLS'],
   },
   {
     provider: 'Meta',
@@ -217,7 +248,7 @@ export const textModels: TextModel[] = [
     region: 'us-west-2',
     inputCostPerToken: 0.000_16 / 1e3,
     outputCostPerToken: 0.000_16 / 1e3,
-    capabilities: ['ATTACHMENTS'],
+    capabilities: ['IMAGE', 'TOOLS'],
   },
   {
     provider: 'Meta',
@@ -226,7 +257,7 @@ export const textModels: TextModel[] = [
     region: 'us-west-2',
     inputCostPerToken: 0.000_72 / 1e3,
     outputCostPerToken: 0.000_72 / 1e3,
-    capabilities: ['ATTACHMENTS'],
+    capabilities: ['IMAGE', 'TOOLS'],
   },
   {
     provider: 'Meta',
@@ -235,6 +266,7 @@ export const textModels: TextModel[] = [
     region: 'us-west-2',
     inputCostPerToken: 0.000_72 / 1e3,
     outputCostPerToken: 0.000_72 / 1e3,
+    capabilities: ['TOOLS'],
   },
   {
     provider: 'Meta',
@@ -242,7 +274,7 @@ export const textModels: TextModel[] = [
     name: 'Llama 4 Maverick 17B Instruct',
     inputCostPerToken: 0.000_24 / 1e3,
     outputCostPerToken: 0.000_97 / 1e3,
-    capabilities: ['ATTACHMENTS'],
+    capabilities: ['IMAGE', 'TOOLS'],
   },
   {
     provider: 'Meta',
@@ -250,62 +282,31 @@ export const textModels: TextModel[] = [
     name: 'Llama 4 Scout 17B Instruct',
     inputCostPerToken: 0.000_17 / 1e3,
     outputCostPerToken: 0.000_66 / 1e3,
-    capabilities: ['ATTACHMENTS'],
-  },
-  {
-    provider: 'Mistral',
-    id: 'mistral.mistral-7b-instruct-v0:2',
-    name: 'Mistral 7B Instruct',
-    inputCostPerToken: 0.000_15 / 1e3,
-    outputCostPerToken: 0.0002 / 1e3,
-  },
-  {
-    provider: 'Mistral',
-    id: 'mistral.mixtral-8x7b-instruct-v0:1',
-    name: 'Mixtral 8x7B Instruct',
-    inputCostPerToken: 0.000_45 / 1e3,
-    outputCostPerToken: 0.0007 / 1e3,
-  },
-  {
-    provider: 'Mistral',
-    id: 'mistral.mistral-large-2407-v1:0',
-    name: 'Mistral Large v2',
-    region: 'us-west-2',
-    inputCostPerToken: 0.002 / 1e3,
-    outputCostPerToken: 0.006 / 1e3,
-  },
-  {
-    provider: 'Nvidia',
-    id: 'meta/llama3-8b-instruct',
-    name: 'Llama 3 8B Instruct (Nvidia NIM)',
-  },
-  {
-    provider: 'Nvidia',
-    id: 'meta/llama3-70b-instruct',
-    name: 'Llama 3 70B Instruct (Nvidia NIM)',
+    capabilities: ['IMAGE', 'TOOLS'],
   },
   {
     provider: 'OpenAI',
-    id: 'gpt-4o',
-    name: 'GPT 4o',
-    inputCostPerToken: 0.0025 / 1e3,
+    id: 'gpt-5',
+    name: 'GPT-5',
+    inputCostPerToken: 0.001_25 / 1e3,
     outputCostPerToken: 0.01 / 1e3,
-    capabilities: ['ATTACHMENTS'],
+    capabilities: ['IMAGE', 'REASONING', 'TOOLS'],
   },
   {
     provider: 'OpenAI',
-    id: 'gpt-4o-mini',
-    name: 'GPT 4o Mini',
-    inputCostPerToken: 0.000_15 / 1e3,
-    outputCostPerToken: 0.0006 / 1e3,
-    capabilities: ['ATTACHMENTS'],
+    id: 'gpt-5-mini',
+    name: 'GPT-5 Mini',
+    inputCostPerToken: 0.000_25 / 1e3,
+    outputCostPerToken: 0.002 / 1e3,
+    capabilities: ['IMAGE', 'TOOLS', 'REASONING'],
   },
   {
     provider: 'OpenAI',
-    id: 'o3-mini',
-    name: 'o3 Mini',
-    inputCostPerToken: 0.0011 / 1e3,
-    outputCostPerToken: 0.0044 / 1e3,
+    id: 'gpt-5-nano',
+    name: 'GPT-5 Nano',
+    inputCostPerToken: 0.000_05 / 1e3,
+    outputCostPerToken: 0.0004 / 1e3,
+    capabilities: ['IMAGE', 'TOOLS', 'REASONING'],
   },
   {
     provider: 'AI21',
@@ -313,6 +314,7 @@ export const textModels: TextModel[] = [
     name: 'Jamba-Instruct',
     inputCostPerToken: 0.0005 / 1e3,
     outputCostPerToken: 0.0007 / 1e3,
+    capabilities: ['TOOLS'],
   },
   {
     provider: 'AI21',
@@ -320,6 +322,7 @@ export const textModels: TextModel[] = [
     name: 'Jamba 1.5 Mini',
     inputCostPerToken: 0.0002 / 1e3,
     outputCostPerToken: 0.0004 / 1e3,
+    capabilities: ['TOOLS'],
   },
   {
     provider: 'AI21',
@@ -327,6 +330,7 @@ export const textModels: TextModel[] = [
     name: 'Jamba 1.5 Large',
     inputCostPerToken: 0.002 / 1e3,
     outputCostPerToken: 0.008 / 1e3,
+    capabilities: ['TOOLS'],
   },
   {
     provider: 'Writer',

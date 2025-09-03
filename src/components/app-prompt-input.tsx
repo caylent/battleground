@@ -59,7 +59,10 @@ export const AppPromptInput = ({
   });
 
   return (
-    <PromptInput className="mt-2" onSubmit={onSubmitAction}>
+    <PromptInput
+      className="mt-2 rounded-md bg-white/5"
+      onSubmit={onSubmitAction}
+    >
       {files.length > 0 && (
         <div className="flex flex-row flex-wrap gap-2 p-2">
           {files.map((file) => (

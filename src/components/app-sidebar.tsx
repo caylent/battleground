@@ -36,7 +36,7 @@ export async function AppSidebar({
       {/* We disable collapsible and adjust width to icon. */}
       {/* This will make the sidebar appear as icons. */}
       <Sidebar
-        className="w-[calc(var(--sidebar-width-icon)+1px)]! rounded-l-md border-r-0 bg-white/2 group-data-[state=expanded]:border-r"
+        className="w-[calc(var(--sidebar-width-icon)+1px)]! rounded-l-md border-r-0 bg-white/30 group-data-[state=expanded]:border-r group-data-[state=expanded]:border-r-sidebar-border dark:bg-white/10"
         collapsible="none"
       >
         <SidebarHeader>
@@ -51,7 +51,12 @@ export async function AppSidebar({
         </SidebarContent>
         <SidebarFooter>
           <SidebarMenuButton asChild>
-            <Button size="icon" variant="ghost">
+            <Button
+              asChild
+              className="text-foreground hover:bg-gray-100! hover:text-[var(--sidebar-accent-foreground)] dark:hover:bg-[var(--sidebar-accent)]!"
+              size="icon"
+              variant="ghost"
+            >
               <Link
                 href="https://github.com/caylent/battleground"
                 target="_blank"
@@ -70,7 +75,7 @@ export async function AppSidebar({
       {/* This is the second sidebar */}
       {/* We disable collapsible and let it fill remaining space */}
       <Sidebar
-        className="hidden flex-1 rounded-r-md md:flex"
+        className="hidden flex-1 rounded-r-md bg-white/20 md:flex dark:bg-white/5"
         collapsible="none"
       >
         <SidebarContent>
