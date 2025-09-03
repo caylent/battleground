@@ -1,6 +1,16 @@
-import { createAmazonBedrock } from '@ai-sdk/amazon-bedrock';
+import {
+  type BedrockProviderOptions,
+  createAmazonBedrock,
+} from '@ai-sdk/amazon-bedrock';
 import { auth } from '@clerk/nextjs/server';
-import { createIdGenerator, generateId, stepCountIs, streamText } from 'ai';
+import {
+  createIdGenerator,
+  extractReasoningMiddleware,
+  generateId,
+  stepCountIs,
+  streamText,
+  wrapLanguageModel,
+} from 'ai';
 import { fetchMutation, fetchQuery } from 'convex/nextjs';
 import type { NextRequest } from 'next/server';
 import { after } from 'next/server';
@@ -8,15 +18,12 @@ import { createResumableStreamContext } from 'resumable-stream';
 import { convertToModelMessageWithAttachments } from '@/lib/convert-to-model-messages';
 import { generateChatName } from '@/lib/generate-chat-name';
 import { getRequestCost } from '@/lib/model/get-request-cost';
-import { textModels } from '@/lib/model/models';
 import { rateLimit } from '@/lib/rate-limiter';
 import { uploadAttachments } from '@/lib/upload-attachments';
 import { tools } from '@/tools';
 import type { MyUIMessage } from '@/types/app-message';
 import { api } from '../../../../convex/_generated/api';
 import type { Id } from '../../../../convex/_generated/dataModel';
-
-// const redis = await createClient({ url: process.env.REDIS_URL }).connect();
 
 export async function POST(req: NextRequest) {
   const { userId } = await auth();
@@ -29,18 +36,11 @@ export async function POST(req: NextRequest) {
 
   const {
     id,
-    modelId = 'us.anthropic.claude-sonnet-4-20250514-v1:0',
     message,
-    maxTokens,
-    temperature,
     trigger = 'submit-message',
   } = (await req.json()) as {
     id: Id<'chats'>;
     message: MyUIMessage;
-    modelId?: string;
-    systemPrompt?: string;
-    maxTokens?: number;
-    temperature?: number;
     trigger?: 'submit-message' | 'regenerate-message';
   };
 
@@ -85,14 +85,18 @@ export async function POST(req: NextRequest) {
       name: chatName,
     });
 
-    const modelInfo = textModels.find((m) => m.id === modelId);
+    const middleware = extractReasoningMiddleware({
+      tagName: 'thinking',
+    });
 
-    const model = createAmazonBedrock({
-      region: modelInfo?.region ?? 'us-east-1',
-    })(modelId);
+    const model = wrapLanguageModel({
+      model: createAmazonBedrock({
+        region: chat.model?.region ?? 'us-east-1',
+      })(chat.model?.id ?? ''),
+      middleware,
+    });
 
     let ttft: number = Number.NaN;
-    let totalResponseTime: number = Number.NaN;
     const start = Date.now();
 
     const result = streamText({
@@ -103,16 +107,18 @@ export async function POST(req: NextRequest) {
       messages: await convertToModelMessageWithAttachments(userId, messages),
       tools,
       stopWhen: stepCountIs(5),
-      maxOutputTokens: maxTokens,
-      temperature,
+      maxOutputTokens: chat.model?.settings?.maxTokens,
+      temperature: chat.model?.settings?.temperature,
       experimental_context: { userId },
+      providerOptions: {
+        bedrock: {
+          reasoningConfig: { type: 'enabled', budgetTokens: 1024 },
+        } satisfies BedrockProviderOptions,
+      },
       onChunk: () => {
         if (!ttft) {
           ttft = Date.now() - start;
         }
-      },
-      onFinish: () => {
-        totalResponseTime = Date.now() - start;
       },
     });
 
@@ -124,12 +130,13 @@ export async function POST(req: NextRequest) {
       }),
       messageMetadata: ({ part }) => {
         if (part.type === 'finish') {
+          const totalResponseTime = Date.now() - start;
           return {
-            modelId,
+            modelId: chat.model?.id ?? '',
             ttft,
             totalResponseTime,
             cost: getRequestCost({
-              modelId,
+              modelId: chat.model?.id ?? '',
               inputTokens: part.totalUsage.inputTokens ?? 0,
               outputTokens: part.totalUsage.outputTokens ?? 0,
             }),
@@ -141,6 +148,7 @@ export async function POST(req: NextRequest) {
         await fetchMutation(api.chats.update, {
           id,
           messages: newMessages,
+          activeStreamId: '',
         });
       },
       async consumeSseStream({ stream }) {

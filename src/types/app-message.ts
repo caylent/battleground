@@ -14,7 +14,7 @@ const metadataSchema = z.object({
   cachedInputTokens: z.number().optional(),
 });
 
-type MyMetadata = z.infer<typeof metadataSchema>;
+export type MyMetadata = z.infer<typeof metadataSchema>;
 
 const dataPartSchema = z.object({});
 

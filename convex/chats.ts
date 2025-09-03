@@ -1,6 +1,7 @@
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 import { api, internal } from "./_generated/api";
+import { modelSchema } from "./schema";
 
 // Messages use v.any() for maximum flexibility as per original schema
 
@@ -54,11 +55,8 @@ export const listAll = query({
  * Get a specific chat by ID
  */
 export const getById = query({
-  args: { id: v.union(v.id("chats"), v.literal("new")) },
+  args: { id: v.id("chats") },
   handler: async (ctx, args) => {
-    if (args.id === "new") {
-      return null;
-    }
     return await ctx.db.get(args.id);
   },
 });
@@ -153,31 +151,19 @@ export const getStats = query({
 export const create = mutation({
   args: {
     name: v.string(),
-    model: v.optional(v.object({
-      id: v.string(),
-      name: v.string(),
-      provider: v.string(),
-      region: v.optional(v.string()),
-      inputCostPerToken: v.optional(v.number()),
-      outputCostPerToken: v.optional(v.number()),
-      capabilities: v.optional(v.array(v.string())),
-    })),
-    systemPrompt: v.optional(v.string()),
-    maxTokens: v.optional(v.number()),
-    temperature: v.optional(v.number()),
+    userId: v.string(),
+    model: v.optional(modelSchema),
   },
   handler: async (ctx, args) => {
     const now = Date.now();
 
     const chatId = await ctx.db.insert("chats", {
       name: args.name,
+      userId: args.userId,
       messages: [],
       messageCount: 0,
       updatedAt: now,
       model: args.model,
-      systemPrompt: args.systemPrompt,
-      maxTokens: args.maxTokens,
-      temperature: args.temperature,
     });
     
     return chatId;
@@ -194,18 +180,7 @@ export const update = mutation({
     messages: v.optional(v.array(v.any())),
     name: v.optional(v.string()),
     isFavorite: v.optional(v.boolean()),
-    model: v.optional(v.object({
-      id: v.string(),
-      name: v.string(),
-      provider: v.string(),
-      region: v.optional(v.string()),
-      inputCostPerToken: v.optional(v.number()),
-      outputCostPerToken: v.optional(v.number()),
-      capabilities: v.optional(v.array(v.string())),
-    })),
-    systemPrompt: v.optional(v.string()),
-    maxTokens: v.optional(v.number()),
-    temperature: v.optional(v.number()),
+    model: v.optional(modelSchema),
     activeStreamId: v.optional(v.string()),
     isArchived: v.optional(v.boolean()),
   },
@@ -245,21 +220,6 @@ export const update = mutation({
       fieldsToUpdate.model = updateFields.model;
     }
 
-    // Handle systemPrompt update
-    if (updateFields.systemPrompt !== undefined) {
-      fieldsToUpdate.systemPrompt = updateFields.systemPrompt;
-    }
-
-    // Handle maxTokens update
-    if (updateFields.maxTokens !== undefined) {
-      fieldsToUpdate.maxTokens = updateFields.maxTokens;
-    }
-
-    // Handle temperature update
-    if (updateFields.temperature !== undefined) {
-      fieldsToUpdate.temperature = updateFields.temperature;
-    }
-    
     // Always update the timestamp when any field is modified
     if (Object.keys(fieldsToUpdate).length > 0) {
       fieldsToUpdate.updatedAt = Date.now();
@@ -365,6 +325,7 @@ export const branch = mutation({
     
     const newChatId = await ctx.db.insert("chats", {
       name: branchName,
+      userId: originalChat.userId,
       messages: branchedMessages,
       updatedAt: now,
       messageCount: branchedMessages.length,

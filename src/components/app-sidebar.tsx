@@ -53,7 +53,7 @@ export async function AppSidebar({
           <SidebarMenuButton asChild>
             <Button
               asChild
-              className="text-foreground hover:bg-gray-100! hover:text-[var(--sidebar-accent-foreground)] dark:hover:bg-[var(--sidebar-accent)]!"
+              className="text-foreground hover:bg-sidebar-accent hover:text-[var(--sidebar-accent-foreground)] dark:hover:bg-[var(--sidebar-accent)]!"
               size="icon"
               variant="ghost"
             >

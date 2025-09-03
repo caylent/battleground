@@ -4,24 +4,21 @@ import { CheckIcon, CopyIcon, RefreshCcwIcon } from 'lucide-react';
 import { useState } from 'react';
 import type { MyUIMessage } from '@/types/app-message';
 import { Action, Actions } from './ai-elements/actions';
-import MetadataHoverCard from './metadata-hovercard';
+import InlineMetadata from './inline-metadata';
 
 export type AssistantActionsProps = {
   message: MyUIMessage;
-  onRegenerate: (messageId: string) => void;
+  onRegenerateAction: (messageId: string) => void;
 };
 
 export default function AssistantActions({
   message,
-  onRegenerate,
+  onRegenerateAction,
 }: AssistantActionsProps) {
   const [isCopied, setIsCopied] = useState(false);
 
   return (
     <Actions>
-      <Action label="Retry" onClick={() => onRegenerate(message.id)}>
-        <RefreshCcwIcon className="size-3" />
-      </Action>
       <Action
         label="Copy"
         onClick={() => {
@@ -44,8 +41,11 @@ export default function AssistantActions({
           <CopyIcon className="size-3" />
         )}
       </Action>
+      <Action label="Retry" onClick={() => onRegenerateAction(message.id)}>
+        <RefreshCcwIcon className="size-3" />
+      </Action>
 
-      {message.metadata && <MetadataHoverCard metadata={message.metadata} />}
+      {message.metadata && <InlineMetadata metadata={message.metadata} />}
     </Actions>
   );
 }

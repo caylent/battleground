@@ -51,7 +51,10 @@ export function NavMain() {
           <SidebarMenuItem key={item.url}>
             <SidebarMenuButton
               asChild
-              className={cn(isActive(item.url) && 'bg-sidebar-accent')}
+              className={cn(
+                isActive(item.url) &&
+                  'bg-sidebar-accent text-sidebar-accent-foreground'
+              )}
               tooltip={item.title}
             >
               <Link href={item.url as any}>

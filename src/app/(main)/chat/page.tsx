@@ -1,6 +1,7 @@
 'use client';
 
 import { useChat } from '@ai-sdk/react';
+import { useAuth } from '@clerk/nextjs';
 import { DefaultChatTransport, type FileUIPart } from 'ai';
 import { useMutation } from 'convex/react';
 import { motion } from 'framer-motion';
@@ -15,7 +16,7 @@ import { api } from '../../../../convex/_generated/api';
 
 export default function ChatMainPage() {
   const router = useRouter();
-
+  const { userId } = useAuth();
   const [input, setInput] = useState('');
   const [files, setFiles] = useState<FileUIPart[]>([]);
   const [model, setModel] = useState<TextModel>(DEFAULT_TEXT_MODEL);
@@ -45,7 +46,11 @@ export default function ChatMainPage() {
     if (!input.trim()) return;
 
     try {
-      const id = await createChat({ name: 'New Chat', model });
+      const id = await createChat({
+        name: 'New Chat',
+        model,
+        userId: userId ?? '',
+      });
 
       setChatId(id);
 

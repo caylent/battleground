@@ -39,7 +39,8 @@ export type TextModel = {
   capabilities?: TextModelCapabilities[];
 };
 
-export const DEFAULT_TEXT_MODEL_ID = 'us.amazon.nova-micro-v1:0';
+export const DEFAULT_TEXT_MODEL_ID =
+  'us.anthropic.claude-sonnet-4-20250514-v1:0';
 
 export const textModels = [
   {

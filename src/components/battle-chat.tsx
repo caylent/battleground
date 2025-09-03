@@ -2,8 +2,8 @@
 
 import { useChat } from '@ai-sdk/react';
 import { DefaultChatTransport, type FileUIPart } from 'ai';
-import { type Preloaded, useMutation, usePreloadedQuery } from 'convex/react';
-import { useEffect, useState } from 'react';
+import { type Preloaded, usePreloadedQuery } from 'convex/react';
+import { useState } from 'react';
 import {
   Conversation,
   ConversationContent,
@@ -16,48 +16,43 @@ import {
   ReasoningTrigger,
 } from '@/components/ai-elements/reasoning';
 import { Response } from '@/components/ai-elements/response';
-import { textModels } from '@/lib/model/models';
 import type { MyUIMessage } from '@/types/app-message';
-import { api } from '../../convex/_generated/api';
-import type { Id } from '../../convex/_generated/dataModel';
+import type { api } from '../../convex/_generated/api';
+import type { Doc } from '../../convex/_generated/dataModel';
 import { AppPromptInput } from './app-prompt-input';
-import AssistantActions from './assistant-actions';
 import { Attachment } from './attachment';
 import { StatefulImage } from './stateful-image';
 import { Spinner } from './ui/shadcn-io/spinner';
-import UserActions from './user-actions';
 
-export function Chat({
-  preloadedChat,
+export function BattleChatWrapper({
+  preloadedBattle,
 }: {
-  preloadedChat: Preloaded<typeof api.chats.getById>;
+  preloadedBattle: Preloaded<typeof api.battle.getByUserId>;
+}) {
+  const battle = usePreloadedQuery(preloadedBattle);
+
+  return (
+    <div>
+      {battle?.chats.map((chat, idx) => (
+        <BattleChat chat={chat} key={idx} />
+      ))}
+    </div>
+  );
+}
+
+export function BattleChat({
+  chat,
+}: {
+  chat: Doc<'battles'>['chats'][number];
 }) {
   const [input, setInput] = useState('');
   const [files, setFiles] = useState<FileUIPart[]>([]);
-  const chat = usePreloadedQuery(preloadedChat);
-  const updateChat = useMutation(api.chats.update);
 
-  const { messages, sendMessage, status, regenerate, setMessages } =
-    useChat<MyUIMessage>({
-      id: chat?._id,
-      resume: true,
-      messages: chat?.messages || [],
-      transport: new DefaultChatTransport({
-        prepareSendMessagesRequest: ({ messages: sendMessages, trigger }) => {
-          return {
-            body: {
-              id: chat?._id,
-              message: sendMessages.at(-1),
-              trigger,
-            },
-          };
-        },
-      }),
-    });
-
-  useEffect(() => {
-    setMessages(chat?.messages || []);
-  }, [chat, setMessages]);
+  const { messages, sendMessage, status } = useChat<MyUIMessage>({
+    resume: true,
+    messages: [],
+    transport: new DefaultChatTransport({ api: '/api/battle' }),
+  });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -79,10 +74,6 @@ export function Chat({
               return (
                 <div key={message.id}>
                   <Message from={message.role} key={message.id}>
-                    {message.role === 'user' && (
-                      <UserActions chatId={chat?._id ?? ''} message={message} />
-                    )}
-
                     <MessageContent>
                       {message.parts.map((part, partIdx) => {
                         switch (part.type) {
@@ -108,7 +99,7 @@ export function Chat({
                             return (
                               <Reasoning
                                 className="w-full"
-                                isStreaming={part.state === 'streaming'}
+                                isStreaming={status === 'streaming'}
                                 key={`${message.id}-${partIdx}`}
                               >
                                 <ReasoningTrigger />
@@ -129,22 +120,16 @@ export function Chat({
                         }
                       })}
 
-                      {message.role === 'assistant' &&
-                        (!isLastMessage ||
-                          (status === 'ready' && isLastMessage)) && (
-                          <AssistantActions
-                            message={message}
-                            onRegenerateAction={() =>
-                              regenerate({ messageId: message.id })
-                            }
-                          />
+                      {(status === 'submitted' || status === 'streaming') &&
+                        isLastMessage &&
+                        message.role === 'assistant' && (
+                          <Spinner className="mt-2" variant="ellipsis" />
                         )}
                     </MessageContent>
                   </Message>
                 </div>
               );
             })}
-            {status === 'submitted' && <Spinner variant="ellipsis" />}
           </ConversationContent>
           <ConversationScrollButton />
         </Conversation>
@@ -152,12 +137,12 @@ export function Chat({
         <AppPromptInput
           files={files}
           input={input}
-          model={chat?.model ?? textModels[0]}
+          model={chat}
           onSubmitAction={handleSubmit}
           setFilesAction={setFiles}
           setInputAction={setInput}
-          setModelAction={(model) => {
-            updateChat({ id: chat?._id as Id<'chats'>, model });
+          setModelAction={() => {
+            // updateBattle({ id, model });
           }}
           status={status}
         />

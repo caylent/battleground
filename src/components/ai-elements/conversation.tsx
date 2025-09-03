@@ -13,7 +13,7 @@ export const Conversation = ({ className, ...props }: ConversationProps) => (
   <StickToBottom
     className={cn(
       'relative flex-1 overflow-y-auto',
-      '[&>*:first-child]:scrollbar-thumb-white/10 [&>*:first-child]:scrollbar-track-transparent [&>*:first-child]:scrollbar-thin',
+      '[&>*:first-child]:scrollbar-thumb-muted-foreground/10 [&>*:first-child]:scrollbar-track-transparent [&>*:first-child]:scrollbar-thin',
       className
     )}
     initial="smooth"

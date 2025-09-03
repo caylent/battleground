@@ -18,6 +18,7 @@ import {
 } from '@/components/ai-elements/prompt-input';
 import { type TextModel, textModels } from '@/lib/model/models';
 import { Attachment } from './attachment';
+import { ModelCombobox } from './model-combobox';
 
 export type AppPromptInputProps = {
   status: ChatStatus;
@@ -85,10 +86,16 @@ export const AppPromptInput = ({
       />
       <PromptInputToolbar>
         <PromptInputTools>
-          <PromptInputButton onClick={openFilePicker}>
-            <PaperclipIcon className="size-3" />
-          </PromptInputButton>
-          <PromptInputModelSelect
+          {model?.capabilities?.includes('IMAGE') && (
+            <PromptInputButton onClick={openFilePicker}>
+              <PaperclipIcon className="size-3" />
+            </PromptInputButton>
+          )}
+          <ModelCombobox
+            model={model ?? textModels[0]}
+            setModelAction={setModelAction}
+          />
+          {/* <PromptInputModelSelect
             onValueChange={(value) => {
               setModelAction(
                 textModels.find((m) => m.id === value) ?? textModels[0]
@@ -106,7 +113,7 @@ export const AppPromptInput = ({
                 </PromptInputModelSelectItem>
               ))}
             </PromptInputModelSelectContent>
-          </PromptInputModelSelect>
+          </PromptInputModelSelect> */}
         </PromptInputTools>
         <PromptInputSubmit disabled={!input} status={status} />
       </PromptInputToolbar>

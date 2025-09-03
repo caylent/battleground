@@ -1,8 +1,24 @@
 import { defineSchema, defineTable } from "convex/server";
 import { v } from "convex/values";
 
+export const modelSchema = v.object({
+  id: v.string(),
+  name: v.string(),
+  provider: v.string(),
+  region: v.optional(v.string()),
+  inputCostPerToken: v.optional(v.number()),
+  outputCostPerToken: v.optional(v.number()),
+  capabilities: v.optional(v.array(v.string())),
+  settings: v.optional(v.object({
+    systemPrompt: v.optional(v.string()),
+    temperature: v.optional(v.number()),
+    maxTokens: v.optional(v.number()),
+  })),
+});
+
 export const chatSchema = defineTable({
   name: v.string(),
+  userId: v.string(),
   messages: v.array(v.any()),
   updatedAt: v.number(),
   messageCount: v.optional(v.number()), // Cache for performance
@@ -11,18 +27,12 @@ export const chatSchema = defineTable({
   isFavorite: v.optional(v.boolean()),
   isArchived: v.optional(v.boolean()),
   activeStreamId: v.optional(v.string()),
-  model: v.optional(v.object({
-    id: v.string(),
-    name: v.string(),
-    provider: v.string(),
-    region: v.optional(v.string()),
-    inputCostPerToken: v.optional(v.number()),
-    outputCostPerToken: v.optional(v.number()),
-    capabilities: v.optional(v.array(v.string())),
-  })),
-  systemPrompt: v.optional(v.string()),
-  maxTokens: v.optional(v.number()),
-  temperature: v.optional(v.number()),
+  model: v.optional(modelSchema),
+});
+
+export const battleSchema = defineTable({
+  userId: v.string(),
+  chats: v.array(modelSchema),
 });
 
 export const promptSchema = defineTable({
@@ -34,4 +44,5 @@ export const promptSchema = defineTable({
 export default defineSchema({
   chats: chatSchema,
   prompts: promptSchema,
+  battles: battleSchema,
 });

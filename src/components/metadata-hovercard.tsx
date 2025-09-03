@@ -55,7 +55,7 @@ export default function MetadataHoverCard({
           {/* Header with Model */}
           <div className="border-border/10 border-b pb-2">
             <div className="mb-1 flex items-center gap-2">
-              <InfoIcon className="size-3 text-purple-400" />
+              <InfoIcon className="size-3 text-primary" />
               <span className="font-medium text-muted-foreground text-xs">
                 Response Metadata
               </span>
@@ -69,13 +69,13 @@ export default function MetadataHoverCard({
           <div className="grid grid-cols-2 gap-2">
             <div className="rounded-md bg-muted/20 px-2 py-1.5">
               <div className="text-muted-foreground text-xs">TTFT</div>
-              <div className="font-medium font-mono text-purple-400 text-xs">
+              <div className="font-medium font-mono text-primary text-xs">
                 {formatValue(metadata.ttft, 'ms')}
               </div>
             </div>
             <div className="rounded-md bg-muted/20 px-2 py-1.5">
               <div className="text-muted-foreground text-xs">Cost</div>
-              <div className="font-medium font-mono text-purple-400 text-xs">
+              <div className="font-medium font-mono text-primary text-xs">
                 {formatCost(metadata.cost)}
               </div>
             </div>
@@ -120,21 +120,21 @@ export default function MetadataHoverCard({
             <div className="border-border/10 border-t pt-2">
               <div className="grid grid-cols-2 gap-1.5">
                 {metadata.reasoningTokens !== undefined && (
-                  <div className="rounded-md bg-purple-500/10 px-2 py-1 text-center">
-                    <div className="text-purple-400 text-xs leading-tight">
+                  <div className="rounded-md bg-primary/10 px-2 py-1 text-center">
+                    <div className="text-primary text-xs leading-tight">
                       Reasoning
                     </div>
-                    <div className="font-medium font-mono text-purple-300 text-xs">
+                    <div className="font-medium font-mono text-primary/80 text-xs">
                       {formatCompactTokens(metadata.reasoningTokens)}
                     </div>
                   </div>
                 )}
                 {metadata.cachedInputTokens !== undefined && (
-                  <div className="rounded-md bg-emerald-500/10 px-2 py-1 text-center">
-                    <div className="text-emerald-400 text-xs leading-tight">
+                  <div className="rounded-md bg-chart-1/10 px-2 py-1 text-center">
+                    <div className="text-chart-1 text-xs leading-tight">
                       Cached
                     </div>
-                    <div className="font-medium font-mono text-emerald-300 text-xs">
+                    <div className="font-medium font-mono text-chart-1/80 text-xs">
                       {formatCompactTokens(metadata.cachedInputTokens)}
                     </div>
                   </div>
