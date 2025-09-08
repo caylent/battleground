@@ -47,25 +47,35 @@ export const Reasoning = memo(
     reasoningPart,
     duration,
     open,
-    defaultOpen = true,
+    defaultOpen = false,
     onOpenChange,
     children,
     ...props
   }: ReasoningProps) => {
     const isStreaming = reasoningPart?.state === 'streaming';
 
+    // Start closed by default unless controlled via `open` OR we are currently streaming
     const [isOpen, setIsOpen] = useControllableState({
       prop: open,
-      defaultProp: defaultOpen,
+      defaultProp: isStreaming ? true : defaultOpen,
       onChange: onOpenChange,
     });
 
+    const [hasStreamed, setHasStreamed] = useState(false);
     const [hasAutoClosedRef, setHasAutoClosedRef] = useState(false);
 
-    // Auto-open when streaming starts, auto-close when streaming ends (once only)
+    // Track whether we've ever been in streaming state during this component's lifecycle
     useEffect(() => {
-      if (defaultOpen && !isStreaming && isOpen && !hasAutoClosedRef) {
-        // Add a small delay before closing to allow user to see the content
+      if (isStreaming) {
+        setHasStreamed(true);
+        // Ensure it's open while streaming
+        if (!isOpen) setIsOpen(true);
+      }
+    }, [isStreaming, isOpen, setIsOpen]);
+
+    // Auto-close only if we previously streamed and now not streaming
+    useEffect(() => {
+      if (hasStreamed && !isStreaming && isOpen && !hasAutoClosedRef) {
         const timer = setTimeout(() => {
           setIsOpen(false);
           setHasAutoClosedRef(true);
@@ -73,7 +83,7 @@ export const Reasoning = memo(
 
         return () => clearTimeout(timer);
       }
-    }, [isStreaming, isOpen, defaultOpen, setIsOpen, hasAutoClosedRef]);
+    }, [hasStreamed, isStreaming, isOpen, hasAutoClosedRef, setIsOpen]);
 
     const handleOpenChange = (newOpen: boolean) => {
       setIsOpen(newOpen);
