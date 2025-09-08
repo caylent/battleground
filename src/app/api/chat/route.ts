@@ -122,6 +122,8 @@ export async function POST(req: NextRequest) {
       },
     });
 
+    let reasoningTime: number = Number.NaN;
+
     return result.toUIMessageStreamResponse<MyUIMessage>({
       originalMessages: messages,
       generateMessageId: createIdGenerator({
@@ -129,12 +131,22 @@ export async function POST(req: NextRequest) {
         size: 16,
       }),
       messageMetadata: ({ part }) => {
+        if (part.type === 'reasoning-start') {
+          reasoningTime = Date.now() - start;
+        }
+        if (part.type === 'reasoning-end') {
+          reasoningTime = Date.now() - start;
+          return {
+            reasoningTime,
+          };
+        }
         if (part.type === 'finish') {
           const totalResponseTime = Date.now() - start;
           return {
             modelId: chat.model?.id ?? '',
             ttft,
             totalResponseTime,
+            reasoningTime,
             cost: getRequestCost({
               modelId: chat.model?.id ?? '',
               inputTokens: part.totalUsage.inputTokens ?? 0,

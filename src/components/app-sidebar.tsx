@@ -11,8 +11,8 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-  SidebarRail,
 } from '@/components/ui/sidebar';
+import { cn } from '@/lib/utils';
 import { api } from '../../convex/_generated/api';
 import { Logo } from './logo';
 import { NavChats } from './nav-chats';
@@ -20,11 +20,7 @@ import { NavMain } from './nav-main';
 import { ThemeToggle } from './theme-toggle';
 import { Button } from './ui/button';
 
-export async function AppSidebar({
-  ...props
-}: React.ComponentProps<typeof Sidebar>) {
-  const preloadedChats = await preloadQuery(api.chats.getRecent, { limit: 10 });
-
+export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   return (
     <Sidebar
       className="overflow-hidden *:data-[sidebar=sidebar]:flex-row"
@@ -53,7 +49,7 @@ export async function AppSidebar({
           <SidebarMenuButton asChild>
             <Button
               asChild
-              className="text-foreground hover:bg-sidebar-accent hover:text-[var(--sidebar-accent-foreground)] dark:hover:bg-[var(--sidebar-accent)]!"
+              className="justify-start text-foreground hover:bg-sidebar-accent hover:text-[var(--sidebar-accent-foreground)] dark:hover:bg-[var(--sidebar-accent)]!"
               size="icon"
               variant="ghost"
             >
@@ -62,6 +58,7 @@ export async function AppSidebar({
                 target="_blank"
               >
                 <GithubIcon className="size-4" />
+                Github
               </Link>
             </Button>
           </SidebarMenuButton>
@@ -74,15 +71,26 @@ export async function AppSidebar({
 
       {/* This is the second sidebar */}
       {/* We disable collapsible and let it fill remaining space */}
-      <Sidebar
-        className="hidden flex-1 rounded-r-md bg-white/20 md:flex dark:bg-white/5"
-        collapsible="none"
-      >
-        <SidebarContent>
-          <NavChats preloadedChats={preloadedChats} />
-        </SidebarContent>
-        <SidebarRail />
-      </Sidebar>
+      <ChatSidebar />
+    </Sidebar>
+  );
+}
+
+async function ChatSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const preloadedChats = await preloadQuery(api.chats.getRecent, { limit: 10 });
+
+  return (
+    <Sidebar
+      {...props}
+      className={cn(
+        'hidden flex-1 rounded-r-md bg-white/20 md:flex dark:bg-white/5',
+        props.className
+      )}
+      collapsible="none"
+    >
+      <SidebarContent>
+        <NavChats preloadedChats={preloadedChats} />
+      </SidebarContent>
     </Sidebar>
   );
 }

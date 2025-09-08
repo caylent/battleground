@@ -3,13 +3,14 @@ import z from 'zod';
 import type { tools } from '@/tools';
 
 const metadataSchema = z.object({
-  modelId: z.string(),
-  ttft: z.number(),
-  totalResponseTime: z.number(),
+  modelId: z.optional(z.string()),
+  ttft: z.optional(z.number()),
+  totalResponseTime: z.optional(z.number()),
   cost: z.number().optional(),
   inputTokens: z.number().optional(),
   outputTokens: z.number().optional(),
   totalTokens: z.number().optional(),
+  reasoningTime: z.number().optional(),
   reasoningTokens: z.number().optional(),
   cachedInputTokens: z.number().optional(),
 });

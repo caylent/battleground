@@ -108,8 +108,9 @@ export function Chat({
                             return (
                               <Reasoning
                                 className="w-full"
-                                isStreaming={part.state === 'streaming'}
+                                duration={message.metadata?.reasoningTime}
                                 key={`${message.id}-${partIdx}`}
+                                reasoningPart={part}
                               >
                                 <ReasoningTrigger />
                                 <ReasoningContent>{part.text}</ReasoningContent>

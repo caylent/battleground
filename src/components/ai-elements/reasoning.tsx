@@ -1,6 +1,7 @@
 'use client';
 
 import { useControllableState } from '@radix-ui/react-use-controllable-state';
+import type { ReasoningUIPart } from 'ai';
 import { BrainIcon, ChevronDownIcon } from 'lucide-react';
 import type { ComponentProps } from 'react';
 import { createContext, memo, useContext, useEffect, useState } from 'react';
@@ -13,10 +14,10 @@ import { cn } from '@/lib/utils';
 import { Response } from './response';
 
 type ReasoningContextValue = {
-  isStreaming: boolean;
+  reasoningPart?: ReasoningUIPart;
+  duration: number;
   isOpen: boolean;
   setIsOpen: (open: boolean) => void;
-  duration: number;
 };
 
 const ReasoningContext = createContext<ReasoningContextValue | null>(null);
@@ -30,11 +31,11 @@ const useReasoning = () => {
 };
 
 export type ReasoningProps = ComponentProps<typeof Collapsible> & {
-  isStreaming?: boolean;
+  reasoningPart?: ReasoningUIPart;
+  duration?: number;
   open?: boolean;
   defaultOpen?: boolean;
   onOpenChange?: (open: boolean) => void;
-  duration?: number;
 };
 
 const AUTO_CLOSE_DELAY = 1000;
@@ -43,38 +44,23 @@ const MS_IN_S = 1000;
 export const Reasoning = memo(
   ({
     className,
-    isStreaming = false,
+    reasoningPart,
+    duration,
     open,
     defaultOpen = true,
     onOpenChange,
-    duration: durationProp,
     children,
     ...props
   }: ReasoningProps) => {
+    const isStreaming = reasoningPart?.state === 'streaming';
+
     const [isOpen, setIsOpen] = useControllableState({
       prop: open,
       defaultProp: defaultOpen,
       onChange: onOpenChange,
     });
-    const [duration, setDuration] = useControllableState({
-      prop: durationProp,
-      defaultProp: 0,
-    });
 
     const [hasAutoClosedRef, setHasAutoClosedRef] = useState(false);
-    const [startTime, setStartTime] = useState<number | null>(null);
-
-    // Track duration when streaming starts and ends
-    useEffect(() => {
-      if (isStreaming) {
-        if (startTime === null) {
-          setStartTime(Date.now());
-        }
-      } else if (startTime !== null) {
-        setDuration(Math.round((Date.now() - startTime) / MS_IN_S));
-        setStartTime(null);
-      }
-    }, [isStreaming, startTime, setDuration]);
 
     // Auto-open when streaming starts, auto-close when streaming ends (once only)
     useEffect(() => {
@@ -95,7 +81,7 @@ export const Reasoning = memo(
 
     return (
       <ReasoningContext.Provider
-        value={{ isStreaming, isOpen, setIsOpen, duration }}
+        value={{ isOpen, setIsOpen, reasoningPart, duration: duration ?? 0 }}
       >
         <Collapsible
           className={cn('not-prose mb-4', className)}
@@ -114,7 +100,7 @@ export type ReasoningTriggerProps = ComponentProps<typeof CollapsibleTrigger>;
 
 export const ReasoningTrigger = memo(
   ({ className, children, ...props }: ReasoningTriggerProps) => {
-    const { isStreaming, isOpen, duration } = useReasoning();
+    const { reasoningPart, isOpen, duration } = useReasoning();
 
     return (
       <CollapsibleTrigger
@@ -127,10 +113,10 @@ export const ReasoningTrigger = memo(
         {children ?? (
           <>
             <BrainIcon className="size-4" />
-            {isStreaming || duration === 0 ? (
+            {reasoningPart?.state === 'streaming' ? (
               <p>Thinking...</p>
             ) : (
-              <p>Thought for {duration} seconds</p>
+              <p>Thought for {Math.round(duration / MS_IN_S)} seconds</p>
             )}
             <ChevronDownIcon
               className={cn(
