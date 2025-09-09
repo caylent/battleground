@@ -54,6 +54,46 @@ export const AppPromptInput = ({
     },
   });
 
+  const handlePaste = (e: React.ClipboardEvent<HTMLTextAreaElement>) => {
+    const clipboardData = e.clipboardData;
+    const items = clipboardData?.items;
+
+    if (!items) return;
+    if (!model?.capabilities?.includes('IMAGE')) return;
+
+    // Process each item in the clipboard
+    for (const item of Array.from(items)) {
+      // Check if the item is a file
+      if (item.kind === 'file') {
+        const file = item.getAsFile();
+        if (!file) continue;
+
+        // Check if it's an accepted file type (image or text)
+        const isImage = file.type.startsWith('image/');
+        const isText = file.type.startsWith('text/');
+
+        if (isImage || isText) {
+          // Prevent default paste behavior for files
+          e.preventDefault();
+
+          // Read the file and add it as an attachment
+          const reader = new FileReader();
+          reader.onload = (event) => {
+            const content = event.target?.result as string;
+            const newFile: FileUIPart = {
+              url: content,
+              filename: file.name,
+              mediaType: file.type,
+              type: 'file',
+            };
+            setFilesAction([...files, newFile]);
+          };
+          reader.readAsDataURL(file);
+        }
+      }
+    }
+  };
+
   return (
     <PromptInput
       className="mt-2 rounded-md bg-white/5"
@@ -77,6 +117,7 @@ export const AppPromptInput = ({
       )}
       <PromptInputTextarea
         onChange={(e) => setInputAction(e.target.value)}
+        onPaste={handlePaste}
         value={input}
       />
       <PromptInputToolbar>

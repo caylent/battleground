@@ -1,20 +1,17 @@
 export function ChatBackground({ children }: { children: React.ReactNode }) {
   return (
     <div className="relative min-h-screen w-full bg-background">
-      {/* Violet Storm Background with Top Glow */}
+      {/* Dynamic Radial Gradient Background */}
       <div
-        className="absolute inset-0 z-0 hidden dark:block"
+        className="absolute inset-0 z-0"
         style={{
-          background:
-            'radial-gradient(ellipse 80% 60% at 50% 0%, rgba(139, 92, 246, 0.25), transparent 70%), #000000',
-        }}
-      />
-
-      <div
-        className="absolute inset-0 z-0 block dark:hidden"
-        style={{
-          background:
-            'radial-gradient(125% 125% at 50% 90%, #fff 40%, #c4aeeb 100%)',
+          background: `
+            radial-gradient(
+              ellipse 80% 60% at 50% 0%, 
+              hsl(from var(--primary) h s l / 0.30), 
+              transparent 70%
+            )
+          `,
         }}
       />
 

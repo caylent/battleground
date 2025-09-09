@@ -1,6 +1,6 @@
 'use client';
 
-import { CheckIcon, CopyIcon, RefreshCcwIcon } from 'lucide-react';
+import { CheckIcon, CopyIcon, InfoIcon, RefreshCcwIcon } from 'lucide-react';
 import { useState } from 'react';
 import type { MyUIMessage } from '@/types/app-message';
 import { Action, Actions } from './ai-elements/actions';
@@ -18,7 +18,7 @@ export default function AssistantActions({
   const [isCopied, setIsCopied] = useState(false);
 
   return (
-    <Actions>
+    <Actions className="-bottom-6 absolute left-4">
       <Action
         label="Copy"
         onClick={() => {
@@ -43,6 +43,14 @@ export default function AssistantActions({
       </Action>
       <Action label="Retry" onClick={() => onRegenerateAction(message.id)}>
         <RefreshCcwIcon className="size-3" />
+      </Action>
+
+      <Action
+        className="flex sm:hidden"
+        label="Retry"
+        onClick={() => onRegenerateAction(message.id)}
+      >
+        <InfoIcon className="size-3" />
       </Action>
 
       {message.metadata && <InlineMetadata metadata={message.metadata} />}

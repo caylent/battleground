@@ -15,7 +15,7 @@ export type ActionsProps = ComponentProps<'div'>;
 export const Actions = ({ className, children, ...props }: ActionsProps) => (
   <div
     className={cn(
-      'flex items-center gap-1 opacity-0 transition-opacity duration-800 group-hover:opacity-100',
+      'flex items-center gap-1 opacity-100 transition-opacity duration-800 md:opacity-0 md:group-hover:opacity-100',
       className
     )}
     {...props}

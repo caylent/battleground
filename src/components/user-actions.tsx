@@ -36,7 +36,7 @@ export default function UserActions({ chatId, message }: UserActionsProps) {
   };
 
   return (
-    <Actions className="mt-2 mb-auto">
+    <Actions className="-bottom-8 absolute right-0">
       <AlertDialog>
         <AlertDialogTrigger asChild>
           <Action label="Delete">

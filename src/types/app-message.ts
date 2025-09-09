@@ -13,6 +13,7 @@ const metadataSchema = z.object({
   reasoningTime: z.number().optional(),
   reasoningTokens: z.number().optional(),
   cachedInputTokens: z.number().optional(),
+  error: z.string().optional(),
 });
 
 export type MyMetadata = z.infer<typeof metadataSchema>;

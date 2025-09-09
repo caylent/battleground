@@ -4,7 +4,14 @@ import { useControllableState } from '@radix-ui/react-use-controllable-state';
 import type { ReasoningUIPart } from 'ai';
 import { BrainIcon, ChevronDownIcon } from 'lucide-react';
 import type { ComponentProps } from 'react';
-import { createContext, memo, useContext, useEffect, useState } from 'react';
+import {
+  createContext,
+  memo,
+  useContext,
+  useEffect,
+  useId,
+  useState,
+} from 'react';
 import {
   Collapsible,
   CollapsibleContent,
@@ -148,18 +155,34 @@ export type ReasoningContentProps = ComponentProps<
 };
 
 export const ReasoningContent = memo(
-  ({ className, children, ...props }: ReasoningContentProps) => (
-    <CollapsibleContent
-      className={cn(
-        'mt-4 text-sm',
-        'data-[state=closed]:fade-out-0 data-[state=closed]:slide-out-to-top-2 data-[state=open]:slide-in-from-top-2 text-popover-foreground outline-none data-[state=closed]:animate-out data-[state=open]:animate-in',
-        className
-      )}
-      {...props}
-    >
-      <Response className="grid gap-2">{children}</Response>
-    </CollapsibleContent>
-  )
+  ({ className, children, ...props }: ReasoningContentProps) => {
+    const labelId = useId();
+
+    return (
+      <CollapsibleContent
+        className={cn(
+          'mt-4 text-sm',
+          'data-[state=closed]:fade-out-0 data-[state=closed]:slide-out-to-top-2 data-[state=open]:slide-in-from-top-2 text-popover-foreground outline-none data-[state=closed]:animate-out data-[state=open]:animate-in',
+          className
+        )}
+        {...props}
+      >
+        <section
+          aria-labelledby={labelId}
+          className="relative rounded-md border bg-muted/40 p-3 shadow-sm"
+        >
+          <span className="sr-only" id={labelId}>
+            Model reasoning
+          </span>
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute top-0 left-0 h-full w-1 rounded-l-md bg-primary/70"
+          />
+          <Response className="grid gap-2 italic">{children}</Response>
+        </section>
+      </CollapsibleContent>
+    );
+  }
 );
 
 Reasoning.displayName = 'Reasoning';

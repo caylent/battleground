@@ -22,11 +22,7 @@ export default function RootLayout({
   return (
     <ClerkProvider appearance={{ theme: shadcn }}>
       <html
-        className={cn(
-          'overflow-hidden',
-          GeistSans.variable,
-          GeistMono.variable
-        )}
+        className={cn(GeistSans.variable, GeistMono.variable)}
         lang="en"
         suppressHydrationWarning
       >

@@ -24,6 +24,7 @@ import { AppPromptInput } from './app-prompt-input';
 import AssistantActions from './assistant-actions';
 import { Attachment } from './attachment';
 import { StatefulImage } from './stateful-image';
+import { Button } from './ui/button';
 import { Spinner } from './ui/shadcn-io/spinner';
 import UserActions from './user-actions';
 
@@ -33,6 +34,7 @@ export function Chat({
   preloadedChat: Preloaded<typeof api.chats.getById>;
 }) {
   const [input, setInput] = useState('');
+  const [error, setError] = useState<string | null>(null);
   const [files, setFiles] = useState<FileUIPart[]>([]);
   const chat = usePreloadedQuery(preloadedChat);
   const updateChat = useMutation(api.chats.update);
@@ -53,6 +55,10 @@ export function Chat({
           };
         },
       }),
+      onError(e) {
+        setError(e.message);
+        return 'Error';
+      },
     });
 
   useEffect(() => {
@@ -69,8 +75,8 @@ export function Chat({
   };
 
   return (
-    <div className="relative mx-auto size-full h-screen py-2 pr-2">
-      <div className="mx-auto flex h-full max-w-4xl flex-col">
+    <div className="relative mx-auto size-full h-screen">
+      <div className="mx-auto flex h-full max-w-4xl flex-col px-2 py-2 md:pr-2 md:pl-0">
         <Conversation className="h-full">
           <ConversationContent>
             {messages.map((message, messageIdx) => {
@@ -79,11 +85,7 @@ export function Chat({
               return (
                 <div key={message.id}>
                   <Message from={message.role} key={message.id}>
-                    {message.role === 'user' && (
-                      <UserActions chatId={chat?._id ?? ''} message={message} />
-                    )}
-
-                    <MessageContent>
+                    <MessageContent className="relative overflow-visible">
                       {message.parts.map((part, partIdx) => {
                         switch (part.type) {
                           case 'text': {
@@ -130,6 +132,13 @@ export function Chat({
                         }
                       })}
 
+                      {message.role === 'user' && (
+                        <UserActions
+                          chatId={chat?._id ?? ''}
+                          message={message}
+                        />
+                      )}
+
                       {message.role === 'assistant' &&
                         (!isLastMessage ||
                           (status === 'ready' && isLastMessage)) && (
@@ -146,22 +155,32 @@ export function Chat({
               );
             })}
             {status === 'submitted' && <Spinner variant="ellipsis" />}
+            {status === 'error' && (
+              <div className="mx-auto flex max-w-xl flex-col items-center gap-2 rounded-xl border bg-muted/20 p-4 text-sm">
+                Error: {error}
+                <Button onClick={() => regenerate()} variant={'secondary'}>
+                  Try again
+                </Button>
+              </div>
+            )}
           </ConversationContent>
           <ConversationScrollButton />
         </Conversation>
 
-        <AppPromptInput
-          files={files}
-          input={input}
-          model={chat?.model ?? textModels[0]}
-          onSubmitAction={handleSubmit}
-          setFilesAction={setFiles}
-          setInputAction={setInput}
-          setModelAction={(model) => {
-            updateChat({ id: chat?._id as Id<'chats'>, model });
-          }}
-          status={status}
-        />
+        <div className="p-2 md:p-0">
+          <AppPromptInput
+            files={files}
+            input={input}
+            model={chat?.model ?? textModels[0]}
+            onSubmitAction={handleSubmit}
+            setFilesAction={setFiles}
+            setInputAction={setInput}
+            setModelAction={(model) => {
+              updateChat({ id: chat?._id as Id<'chats'>, model });
+            }}
+            status={status}
+          />
+        </div>
       </div>
     </div>
   );

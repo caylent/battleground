@@ -1,6 +1,6 @@
 'use client';
 
-import { CircleGaugeIcon, ZapIcon } from 'lucide-react';
+import { CircleDollarSign, CircleGaugeIcon, ZapIcon } from 'lucide-react';
 import { textModels } from '@/lib/model/models';
 import type { MyMetadata } from '@/types/app-message';
 
@@ -22,13 +22,20 @@ export default function InlineMetadata({ metadata }: { metadata: MyMetadata }) {
     return model?.name || modelId;
   };
 
+  const formatCost = (cost: number | undefined) => {
+    if (cost === undefined || cost === null) return '—';
+    return `$${cost.toFixed(6)}`;
+  };
+
   return (
-    <div className="flex items-center text-muted-foreground text-xs tracking-wide">
-      <span className="">{formatModelName(metadata.modelId)}</span>
+    <div className="hidden items-center text-muted-foreground text-xs tracking-wide sm:flex">
+      <span className="">{formatModelName(metadata.modelId ?? '')}</span>
       <ZapIcon className="mr-1.5 ml-3 size-3 text-yellow-500" />
       <span>TTFT: {formatValue(metadata.ttft, 'ms')}</span>
       <CircleGaugeIcon className="mr-1.5 ml-3 size-3 text-blue-500" />
       <span>{calculateTokensPerSecond()} tok/s</span>
+      <CircleDollarSign className="mr-1.5 ml-3 size-3 text-green-500" />
+      <span>{formatCost(metadata.cost)}</span>
     </div>
   );
 }

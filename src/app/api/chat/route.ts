@@ -2,6 +2,7 @@ import {
   type BedrockProviderOptions,
   createAmazonBedrock,
 } from '@ai-sdk/amazon-bedrock';
+import { openai } from '@ai-sdk/openai';
 import { auth } from '@clerk/nextjs/server';
 import {
   createIdGenerator,
@@ -90,13 +91,15 @@ export async function POST(req: NextRequest) {
     });
 
     const model = wrapLanguageModel({
-      model: createAmazonBedrock({
-        region: chat.model?.region ?? 'us-east-1',
-      })(chat.model?.id ?? ''),
+      model:
+        chat.model?.provider === 'OpenAI'
+          ? openai(chat.model?.id ?? '')
+          : createAmazonBedrock({
+              region: chat.model?.region ?? 'us-east-1',
+            })(chat.model?.id ?? ''),
       middleware,
     });
 
-    let ttft: number = Number.NaN;
     const start = Date.now();
 
     const result = streamText({
@@ -115,14 +118,7 @@ export async function POST(req: NextRequest) {
           reasoningConfig: { type: 'enabled', budgetTokens: 1024 },
         } satisfies BedrockProviderOptions,
       },
-      onChunk: () => {
-        if (!ttft) {
-          ttft = Date.now() - start;
-        }
-      },
     });
-
-    let reasoningTime: number = Number.NaN;
 
     return result.toUIMessageStreamResponse<MyUIMessage>({
       originalMessages: messages,
@@ -131,22 +127,35 @@ export async function POST(req: NextRequest) {
         size: 16,
       }),
       messageMetadata: ({ part }) => {
-        if (part.type === 'reasoning-start') {
-          reasoningTime = Date.now() - start;
+        if (part.type === 'start') {
+          const ttft = Date.now() - start;
+          return {
+            modelId: chat.model?.id ?? '',
+            ttft,
+          };
         }
         if (part.type === 'reasoning-end') {
-          reasoningTime = Date.now() - start;
+          const reasoningTime = Date.now() - start;
           return {
             reasoningTime,
           };
         }
+        if (part.type === 'error') {
+          if (typeof part.error === 'string') {
+            return {
+              error: part.error,
+            };
+          }
+          if (part.error instanceof Error) {
+            return {
+              error: part.error.message,
+            };
+          }
+        }
         if (part.type === 'finish') {
           const totalResponseTime = Date.now() - start;
           return {
-            modelId: chat.model?.id ?? '',
-            ttft,
             totalResponseTime,
-            reasoningTime,
             cost: getRequestCost({
               modelId: chat.model?.id ?? '',
               inputTokens: part.totalUsage.inputTokens ?? 0,

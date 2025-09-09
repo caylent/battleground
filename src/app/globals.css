@@ -2,6 +2,8 @@
 @import "tw-animate-css";
 @plugin 'tailwind-scrollbar';
 
+@source "../../node_modules/streamdown/dist/index.js";
+
 @custom-variant dark (&:is(.dark *));
 
 :root {
@@ -11,19 +13,19 @@
   --card-foreground: #1e293b;
   --popover: #ffffff;
   --popover-foreground: #1e293b;
-  --primary: #6366f1;
+  --primary: #8c5cff;
   --primary-foreground: #ffffff;
   --secondary: #e5e7eb;
   --secondary-foreground: #374151;
   --muted: #f3f4f6;
   --muted-foreground: #6b7280;
-  --accent: #8c5cff;
-  --accent-foreground: #f3f4f6;
+  --accent: oklch(89.4% 0.057 293.283);
+  --accent-foreground: #1e293b;
   --destructive: #ef4444;
   --destructive-foreground: #ffffff;
   --border: #d1d5db;
   --input: #d1d5db;
-  --ring: #6366f1;
+  --ring: #8c5cff;
   --chart-1: #6366f1;
   --chart-2: #4f46e5;
   --chart-3: #4338ca;
@@ -31,7 +33,7 @@
   --chart-5: #312e81;
   --sidebar: #f3f4f6;
   --sidebar-foreground: #1e293b;
-  --sidebar-primary: #6366f1;
+  --sidebar-primary: #8c5cff;
   --sidebar-primary-foreground: #ffffff;
   --sidebar-accent: #8c5cff;
   --sidebar-accent-foreground: #f3f4f6;
@@ -54,7 +56,7 @@
 }
 
 .dark {
-  --background: #1a1b1e;
+  --background: #000;
   --foreground: #f0f0f0;
   --card: #222327;
   --card-foreground: #f0f0f0;
@@ -66,8 +68,8 @@
   --secondary-foreground: #f0f0f0;
   --muted: #2a2c33;
   --muted-foreground: #a0a0a0;
-  --accent: #1e293b;
-  --accent-foreground: #79c0ff;
+  --accent: #2a2c33;
+  --accent-foreground: #f0f0f0;
   --destructive: #f87171;
   --destructive-foreground: #ffffff;
   --border: #33353a;
@@ -155,15 +157,6 @@
   --tracking-wide: calc(var(--tracking-normal) + 0.025em);
   --tracking-wider: calc(var(--tracking-normal) + 0.05em);
   --tracking-widest: calc(var(--tracking-normal) + 0.1em);
-  --animate-aurora: aurora 60s linear infinite;
-  @keyframes aurora {
-  from {
-    backgroundPosition: 50% 50%, 50% 50%;
-    }
-  to {
-    backgroundPosition: 350% 50%, 350% 50%;
-    }
-  }
 }
 
 body {
