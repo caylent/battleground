@@ -13,7 +13,13 @@ export const getByUserId = query({
 });
 
 export const create = mutation({
-  args: { userId: v.string(), chats: v.optional(v.array(modelSchema)) },
+  args: {
+    userId: v.string(),
+    chats: v.optional(v.array(v.object({
+      id: v.string(),
+      model: modelSchema,
+    })))
+  },
   handler: async (ctx, args) => {
     const id = await ctx.db.insert("battles", { userId: args.userId, chats: args.chats ?? [] });
     return await ctx.db.get(id);
@@ -21,7 +27,13 @@ export const create = mutation({
 });
 
 export const update = mutation({
-  args: { id: v.id("battles"), chats: v.array(modelSchema) },
+  args: {
+    id: v.id("battles"),
+    chats: v.optional(v.array(v.object({
+      id: v.string(),
+      model: modelSchema,
+    })))
+  },
   handler: async (ctx, args) => {
     return await ctx.db.patch(args.id, { chats: args.chats });
   },

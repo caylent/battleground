@@ -3,7 +3,7 @@
 import { useChat } from '@ai-sdk/react';
 import { DefaultChatTransport, type FileUIPart } from 'ai';
 import { type Preloaded, usePreloadedQuery } from 'convex/react';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   Conversation,
   ConversationContent,
@@ -34,15 +34,56 @@ export function BattleChatWrapper({
 }) {
   const battle = usePreloadedQuery(preloadedBattle);
 
+  // Shared input/files across all chats in the battle
+  const [sharedInput, setSharedInput] = useState('');
+  const [sharedFiles, setSharedFiles] = useState<FileUIPart[]>([]);
+
+  // Register one sender per modelId so duplicates do not send multiple times
+  const sendersRef = useRef(
+    new Map<string, (args: { text: string; files: FileUIPart[] }) => void>()
+  );
+
+  const registerSender = (
+    modelId: string,
+    fn: (args: { text: string; files: FileUIPart[] }) => void
+  ) => {
+    sendersRef.current.set(modelId, fn);
+    return () => {
+      // Only remove if the same function is currently registered
+      const current = sendersRef.current.get(modelId);
+      if (current === fn) {
+        sendersRef.current.delete(modelId);
+      }
+    };
+  };
+
+  const handleSubmitAll = (e: React.FormEvent) => {
+    e.preventDefault();
+    const text = sharedInput.trim();
+    if (!text) return;
+
+    const payload = { text, files: sharedFiles };
+    for (const sender of sendersRef.current.values()) {
+      sender(payload);
+    }
+
+    setSharedInput('');
+    setSharedFiles([]);
+  };
+
   return (
     <div className="scrollbar-none flex overflow-x-auto">
       {battle?.chats.map((chat, idx) => (
-        <>
-          <BattleChat chat={chat} key={idx} />
-          <BattleChat chat={chat} key={idx} />
-          <BattleChat chat={chat} key={idx} />
-          <BattleChat chat={chat} key={idx} />
-        </>
+        <BattleChat
+          chat={chat}
+          files={sharedFiles}
+          input={sharedInput}
+          key={`chat-${chat.id ?? idx}`}
+          onSubmitAllAction={handleSubmitAll}
+          registerSenderAction={(fn) => registerSender(chat.id, fn)}
+          setFilesAction={setSharedFiles}
+          setInputAction={setSharedInput}
+        />
       ))}
     </div>
   );
@@ -50,36 +91,57 @@ export function BattleChatWrapper({
 
 export function BattleChat({
   chat,
+  input,
+  setInputAction,
+  files,
+  setFilesAction,
+  onSubmitAllAction,
+  registerSenderAction,
 }: {
   chat: Doc<'battles'>['chats'][number];
+  input: string;
+  setInputAction: (value: string) => void;
+  files: FileUIPart[];
+  setFilesAction: (files: FileUIPart[]) => void;
+  onSubmitAllAction: (e: React.FormEvent) => void;
+  registerSenderAction: (
+    fn: (args: { text: string; files: FileUIPart[] }) => void
+  ) => () => void;
 }) {
-  const [input, setInput] = useState('');
-  const [files, setFiles] = useState<FileUIPart[]>([]);
+  // Each chat manages its own state/stream for its model
   const [error, setError] = useState<string | null>(null);
-
   const { messages, sendMessage, status, regenerate } = useChat<MyUIMessage>({
+    id: chat.id,
     messages: [],
-    transport: new DefaultChatTransport({ api: '/api/battle' }),
+    transport: new DefaultChatTransport({
+      api: '/api/battle',
+      prepareSendMessagesRequest: ({ messages: sendMessages, trigger }) => {
+        return {
+          body: {
+            modelId: chat.model.id,
+            messages: sendMessages,
+            trigger,
+          },
+        };
+      },
+    }),
     onError(e) {
       setError(e.message);
       return 'Error';
     },
   });
 
-  console.log(status);
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (input.trim()) {
-      sendMessage({ text: input, files });
-      setInput('');
-      setFiles([]);
-    }
-  };
+  // Register this chat's sender with the wrapper so submitting once sends to all
+  useEffect(() => {
+    const unregister = registerSenderAction(({ text, files: filesToSend }) => {
+      sendMessage({ text, files: filesToSend });
+    });
+    return unregister;
+  }, [registerSenderAction, sendMessage]);
 
   return (
     <div className="relative mx-auto size-full h-screen py-2 pr-2">
-      <div className="mx-auto flex h-full w-xl flex-col rounded-lg border p-2">
+      <div className="mx-auto flex h-full min-w-xl flex-col rounded-lg border p-2">
         <Conversation className="h-full">
           <ConversationContent>
             {messages.map((message, messageIdx) => {
@@ -165,10 +227,10 @@ export function BattleChat({
         <AppPromptInput
           files={files}
           input={input}
-          model={chat}
-          onSubmitAction={handleSubmit}
-          setFilesAction={setFiles}
-          setInputAction={setInput}
+          model={chat.model}
+          onSubmitAction={onSubmitAllAction}
+          setFilesAction={setFilesAction}
+          setInputAction={setInputAction}
           setModelAction={() => {
             // updateBattle({ id, model });
           }}

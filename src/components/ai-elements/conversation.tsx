@@ -31,7 +31,7 @@ export const ConversationContent = ({
   className,
   ...props
 }: ConversationContentProps) => (
-  <StickToBottom.Content className={cn('p-0', className)} {...props} />
+  <StickToBottom.Content className={cn('p-2', className)} {...props} />
 );
 
 export type ConversationScrollButtonProps = ComponentProps<typeof Button>;

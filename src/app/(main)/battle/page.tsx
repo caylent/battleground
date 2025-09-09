@@ -1,9 +1,15 @@
 import { auth } from '@clerk/nextjs/server';
+import { createIdGenerator } from 'ai';
 import { fetchMutation, fetchQuery, preloadQuery } from 'convex/nextjs';
 import { notFound } from 'next/navigation';
 import { BattleChatWrapper } from '@/components/battle-chat';
 import { DEFAULT_TEXT_MODEL } from '@/lib/model/models';
 import { api } from '../../../../convex/_generated/api';
+
+const chatIdGenerator = createIdGenerator({
+  prefix: 'chat',
+  size: 16,
+});
 
 async function initBattle(userId: string) {
   const initialBattle = await fetchQuery(api.battle.getByUserId, {
@@ -13,7 +19,10 @@ async function initBattle(userId: string) {
   if (!initialBattle) {
     await fetchMutation(api.battle.create, {
       userId,
-      chats: [DEFAULT_TEXT_MODEL],
+      chats: [
+        { id: chatIdGenerator(), model: DEFAULT_TEXT_MODEL },
+        { id: chatIdGenerator(), model: DEFAULT_TEXT_MODEL },
+      ],
     });
   }
 }

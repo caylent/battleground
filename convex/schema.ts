@@ -32,7 +32,10 @@ export const chatSchema = defineTable({
 
 export const battleSchema = defineTable({
   userId: v.string(),
-  chats: v.array(modelSchema),
+  chats: v.array(v.object({
+    id: v.string(),
+    model: modelSchema,
+  })),
 });
 
 export const promptSchema = defineTable({
