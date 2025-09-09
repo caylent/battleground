@@ -1,10 +1,16 @@
 import { createAmazonBedrock } from '@ai-sdk/amazon-bedrock';
+import { openai } from '@ai-sdk/openai';
 import { auth } from '@clerk/nextjs/server';
-import { stepCountIs, streamText } from 'ai';
+import {
+  extractReasoningMiddleware,
+  stepCountIs,
+  streamText,
+  wrapLanguageModel,
+} from 'ai';
 import type { NextRequest } from 'next/server';
 import { convertToModelMessageWithAttachments } from '@/lib/convert-to-model-messages';
 import { getRequestCost } from '@/lib/model/get-request-cost';
-import { DEFAULT_TEXT_MODEL, DEFAULT_TEXT_MODEL_ID } from '@/lib/model/models';
+import { textModels } from '@/lib/model/models';
 import { rateLimit } from '@/lib/rate-limiter';
 import { uploadAttachments } from '@/lib/upload-attachments';
 import { tools } from '@/tools';
@@ -19,7 +25,8 @@ export async function POST(req: NextRequest) {
 
   await rateLimit();
 
-  const { messages } = (await req.json()) as {
+  const { modelId, messages } = (await req.json()) as {
+    modelId: string;
     messages: MyUIMessage[];
   };
 
@@ -34,14 +41,22 @@ export async function POST(req: NextRequest) {
   try {
     const updatedMessages = [...messages.slice(0, -1), updatedMessage];
 
-    const modelInfo = DEFAULT_TEXT_MODEL;
+    const modelInfo = textModels.find((m) => m.id === modelId);
 
-    const model = createAmazonBedrock({
-      region: modelInfo?.region ?? 'us-east-1',
-    })(DEFAULT_TEXT_MODEL_ID);
+    const middleware = extractReasoningMiddleware({
+      tagName: 'thinking',
+    });
 
-    let ttft: number = Number.NaN;
-    let totalResponseTime: number = Number.NaN;
+    const model = wrapLanguageModel({
+      model:
+        modelInfo?.provider === 'OpenAI'
+          ? openai(modelInfo?.id ?? '')
+          : createAmazonBedrock({
+              region: modelInfo?.region ?? 'us-east-1',
+            })(modelInfo?.id ?? ''),
+      middleware,
+    });
+
     const start = Date.now();
 
     const result = streamText({
@@ -56,25 +71,32 @@ export async function POST(req: NextRequest) {
       tools,
       stopWhen: stepCountIs(5),
       experimental_context: { userId },
-      onChunk: () => {
-        if (!ttft) {
-          ttft = Date.now() - start;
-        }
-      },
-      onFinish: () => {
-        totalResponseTime = Date.now() - start;
-      },
     });
 
     return result.toUIMessageStreamResponse<MyUIMessage>({
       messageMetadata: ({ part }) => {
+        if (part.type === 'start') {
+          const ttft = Date.now() - start;
+          return { modelId, ttft };
+        }
+        if (part.type === 'reasoning-end') {
+          const reasoningTime = Date.now() - start;
+          return { reasoningTime };
+        }
+        if (part.type === 'error') {
+          if (typeof part.error === 'string') {
+            return { error: part.error };
+          }
+          if (part.error instanceof Error) {
+            return { error: part.error.message };
+          }
+        }
         if (part.type === 'finish') {
+          const totalResponseTime = Date.now() - start;
           return {
-            modelId: DEFAULT_TEXT_MODEL_ID,
-            ttft,
             totalResponseTime,
             cost: getRequestCost({
-              modelId: DEFAULT_TEXT_MODEL_ID,
+              modelId,
               inputTokens: part.totalUsage.inputTokens ?? 0,
               outputTokens: part.totalUsage.outputTokens ?? 0,
             }),

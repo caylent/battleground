@@ -20,9 +20,12 @@ import type { MyUIMessage } from '@/types/app-message';
 import type { api } from '../../convex/_generated/api';
 import type { Doc } from '../../convex/_generated/dataModel';
 import { AppPromptInput } from './app-prompt-input';
+import AssistantActions from './assistant-actions';
 import { Attachment } from './attachment';
 import { StatefulImage } from './stateful-image';
+import { Button } from './ui/button';
 import { Spinner } from './ui/shadcn-io/spinner';
+import UserActions from './user-actions';
 
 export function BattleChatWrapper({
   preloadedBattle,
@@ -32,9 +35,14 @@ export function BattleChatWrapper({
   const battle = usePreloadedQuery(preloadedBattle);
 
   return (
-    <div>
+    <div className="scrollbar-none flex overflow-x-auto">
       {battle?.chats.map((chat, idx) => (
-        <BattleChat chat={chat} key={idx} />
+        <>
+          <BattleChat chat={chat} key={idx} />
+          <BattleChat chat={chat} key={idx} />
+          <BattleChat chat={chat} key={idx} />
+          <BattleChat chat={chat} key={idx} />
+        </>
       ))}
     </div>
   );
@@ -47,12 +55,18 @@ export function BattleChat({
 }) {
   const [input, setInput] = useState('');
   const [files, setFiles] = useState<FileUIPart[]>([]);
+  const [error, setError] = useState<string | null>(null);
 
-  const { messages, sendMessage, status } = useChat<MyUIMessage>({
-    resume: true,
+  const { messages, sendMessage, status, regenerate } = useChat<MyUIMessage>({
     messages: [],
     transport: new DefaultChatTransport({ api: '/api/battle' }),
+    onError(e) {
+      setError(e.message);
+      return 'Error';
+    },
   });
+
+  console.log(status);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -65,7 +79,7 @@ export function BattleChat({
 
   return (
     <div className="relative mx-auto size-full h-screen py-2 pr-2">
-      <div className="mx-auto flex h-full max-w-4xl flex-col">
+      <div className="mx-auto flex h-full w-xl flex-col rounded-lg border p-2">
         <Conversation className="h-full">
           <ConversationContent>
             {messages.map((message, messageIdx) => {
@@ -74,7 +88,7 @@ export function BattleChat({
               return (
                 <div key={message.id}>
                   <Message from={message.role} key={message.id}>
-                    <MessageContent>
+                    <MessageContent className="relative overflow-visible">
                       {message.parts.map((part, partIdx) => {
                         switch (part.type) {
                           case 'text': {
@@ -99,8 +113,9 @@ export function BattleChat({
                             return (
                               <Reasoning
                                 className="w-full"
-                                isStreaming={status === 'streaming'}
+                                duration={message.metadata?.reasoningTime}
                                 key={`${message.id}-${partIdx}`}
+                                reasoningPart={part}
                               >
                                 <ReasoningTrigger />
                                 <ReasoningContent>{part.text}</ReasoningContent>
@@ -120,16 +135,29 @@ export function BattleChat({
                         }
                       })}
 
-                      {(status === 'submitted' || status === 'streaming') &&
-                        isLastMessage &&
-                        message.role === 'assistant' && (
-                          <Spinner className="mt-2" variant="ellipsis" />
+                      {message.role === 'user' && (
+                        <UserActions message={message} />
+                      )}
+
+                      {message.role === 'assistant' &&
+                        (!isLastMessage ||
+                          (status === 'ready' && isLastMessage)) && (
+                          <AssistantActions message={message} />
                         )}
                     </MessageContent>
                   </Message>
                 </div>
               );
             })}
+            {status === 'submitted' && <Spinner variant="ellipsis" />}
+            {status === 'error' && (
+              <div className="mx-auto flex max-w-xl flex-col items-center gap-2 rounded-xl border bg-muted/20 p-4 text-sm">
+                Error: {error}
+                <Button onClick={() => regenerate()} variant={'secondary'}>
+                  Try again
+                </Button>
+              </div>
+            )}
           </ConversationContent>
           <ConversationScrollButton />
         </Conversation>

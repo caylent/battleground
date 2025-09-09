@@ -8,7 +8,7 @@ import InlineMetadata from './inline-metadata';
 
 export type AssistantActionsProps = {
   message: MyUIMessage;
-  onRegenerateAction: (messageId: string) => void;
+  onRegenerateAction?: (messageId: string) => void;
 };
 
 export default function AssistantActions({
@@ -41,15 +41,13 @@ export default function AssistantActions({
           <CopyIcon className="size-3" />
         )}
       </Action>
-      <Action label="Retry" onClick={() => onRegenerateAction(message.id)}>
-        <RefreshCcwIcon className="size-3" />
-      </Action>
+      {onRegenerateAction && (
+        <Action label="Retry" onClick={() => onRegenerateAction(message.id)}>
+          <RefreshCcwIcon className="size-3" />
+        </Action>
+      )}
 
-      <Action
-        className="flex sm:hidden"
-        label="Retry"
-        onClick={() => onRegenerateAction(message.id)}
-      >
+      <Action className="flex sm:hidden" label="Metrics">
         <InfoIcon className="size-3" />
       </Action>
 

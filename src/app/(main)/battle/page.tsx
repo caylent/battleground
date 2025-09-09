@@ -5,6 +5,19 @@ import { BattleChatWrapper } from '@/components/battle-chat';
 import { DEFAULT_TEXT_MODEL } from '@/lib/model/models';
 import { api } from '../../../../convex/_generated/api';
 
+async function initBattle(userId: string) {
+  const initialBattle = await fetchQuery(api.battle.getByUserId, {
+    userId,
+  });
+
+  if (!initialBattle) {
+    await fetchMutation(api.battle.create, {
+      userId,
+      chats: [DEFAULT_TEXT_MODEL],
+    });
+  }
+}
+
 export default async function ChatPage() {
   const { userId } = await auth();
 
@@ -12,16 +25,7 @@ export default async function ChatPage() {
     return notFound();
   }
 
-  const battle = await fetchQuery(api.battle.getByUserId, {
-    userId,
-  });
-
-  if (!battle) {
-    await fetchMutation(api.battle.create, {
-      userId,
-      chats: [DEFAULT_TEXT_MODEL],
-    });
-  }
+  initBattle(userId);
 
   const preloadedBattle = await preloadQuery(api.battle.getByUserId, {
     userId,
