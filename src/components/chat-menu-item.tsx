@@ -4,12 +4,13 @@ import { useMutation } from 'convex/react';
 import {
   ArchiveIcon,
   ArrowUpRight,
-  Link,
+  LinkIcon,
   MoreHorizontal,
   StarIcon,
   StarOff,
   Trash2,
 } from 'lucide-react';
+import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { api } from '../../convex/_generated/api';
 import type { Doc } from '../../convex/_generated/dataModel';
@@ -40,9 +41,9 @@ export function ChatMenuItem({ chat }: { chat: Doc<'chats'> }) {
   return (
     <SidebarMenuItem key={chat._id}>
       <SidebarMenuButton asChild isActive={isActive(`/chat/${chat._id}`)}>
-        <a href={`/chat/${chat._id}`} title={chat.name}>
+        <Link href={`/chat/${chat._id}`} prefetch title={chat.name}>
           <span>{chat.name}</span>
-        </a>
+        </Link>
       </SidebarMenuButton>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
@@ -73,7 +74,7 @@ export function ChatMenuItem({ chat }: { chat: Doc<'chats'> }) {
           )}
           <DropdownMenuSeparator />
           <DropdownMenuItem>
-            <Link className="text-muted-foreground" />
+            <LinkIcon className="text-muted-foreground" />
             <span>Copy Link</span>
           </DropdownMenuItem>
           <DropdownMenuItem>

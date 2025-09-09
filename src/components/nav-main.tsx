@@ -57,7 +57,7 @@ export function NavMain() {
               )}
               tooltip={item.title}
             >
-              <Link href={item.url as any}>
+              <Link href={item.url as any} prefetch>
                 {item.icon && <item.icon />}
                 <span>{item.title}</span>
               </Link>
