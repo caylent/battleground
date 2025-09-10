@@ -19,10 +19,10 @@ export const Meta = (props: SVGProps<SVGSVGElement>) => {
           y1="55.934%"
           y2="58.694%"
         >
-          <stop offset="0%" stop-color="#0064E1" />
-          <stop offset="40%" stop-color="#0064E1" />
-          <stop offset="83%" stop-color="#0073EE" />
-          <stop offset="100%" stop-color="#0082FB" />
+          <stop offset="0%" stopColor="#0064E1" />
+          <stop offset="40%" stopColor="#0064E1" />
+          <stop offset="83%" stopColor="#0073EE" />
+          <stop offset="100%" stopColor="#0082FB" />
         </linearGradient>
         <linearGradient
           id="meta-b"
@@ -31,8 +31,8 @@ export const Meta = (props: SVGProps<SVGSVGElement>) => {
           y1="82.782%"
           y2="39.307%"
         >
-          <stop offset="0%" stop-color="#0082FB" />
-          <stop offset="100%" stop-color="#0064E0" />
+          <stop offset="0%" stopColor="#0082FB" />
+          <stop offset="100%" stopColor="#0064E0" />
         </linearGradient>
       </defs>
       <path

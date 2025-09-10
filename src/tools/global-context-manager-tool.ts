@@ -30,7 +30,8 @@ export const GlobalContextManagerTool = tool({
       context: undefined,
     };
     await new Promise((resolve) => setTimeout(resolve, 2000));
-    return {
+
+    yield {
       status: 'success' as const,
       message: "Found Caylent's global context",
       context: 'TODO: Implement',
