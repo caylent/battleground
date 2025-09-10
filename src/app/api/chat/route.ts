@@ -104,15 +104,19 @@ export async function POST(req: NextRequest) {
 
     const result = streamText({
       model,
-      system:
-        'You are a helpful assistant. You have access to the following tools (only use them when necessary): ' +
-        Object.keys(tools).join(', '),
+      system: chat.model?.settings?.systemPrompt,
       messages: await convertToModelMessageWithAttachments(userId, messages),
-      tools,
+      activeTools: (chat.model?.settings?.activeTools as any) ?? [],
+      tools: chat.model?.capabilities?.includes('TOOL_STREAMING')
+        ? tools
+        : undefined,
       stopWhen: stepCountIs(5),
       maxOutputTokens: chat.model?.settings?.maxTokens,
       temperature: chat.model?.settings?.temperature,
       experimental_context: { userId },
+      experimental_telemetry: {
+        isEnabled: true,
+      },
       providerOptions: {
         bedrock: {
           reasoningConfig: { type: 'enabled', budgetTokens: 1024 },

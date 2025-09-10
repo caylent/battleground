@@ -1,15 +1,20 @@
 'use client';
 
 import { useChat } from '@ai-sdk/react';
-import { DefaultChatTransport, type FileUIPart } from 'ai';
+import { DefaultChatTransport } from 'ai';
 import { type Preloaded, useMutation, usePreloadedQuery } from 'convex/react';
 import { useEffect, useState } from 'react';
 import {
   Conversation,
   ConversationContent,
+  ConversationEmptyState,
   ConversationScrollButton,
 } from '@/components/ai-elements/conversation';
-import { Message, MessageContent } from '@/components/ai-elements/message';
+import {
+  Message,
+  MessageAttachment,
+  MessageContent,
+} from '@/components/ai-elements/message';
 import {
   Reasoning,
   ReasoningContent,
@@ -22,7 +27,6 @@ import { api } from '../../convex/_generated/api';
 import type { Id } from '../../convex/_generated/dataModel';
 import { AppPromptInput } from './app-prompt-input';
 import AssistantActions from './assistant-actions';
-import { Attachment } from './attachment';
 import { StatefulImage } from './stateful-image';
 import { Button } from './ui/button';
 import { Spinner } from './ui/shadcn-io/spinner';
@@ -33,9 +37,7 @@ export function Chat({
 }: {
   preloadedChat: Preloaded<typeof api.chats.getById>;
 }) {
-  const [input, setInput] = useState('');
   const [error, setError] = useState<string | null>(null);
-  const [files, setFiles] = useState<FileUIPart[]>([]);
   const chat = usePreloadedQuery(preloadedChat);
   const updateChat = useMutation(api.chats.update);
 
@@ -45,9 +47,15 @@ export function Chat({
       resume: true,
       messages: chat?.messages || [],
       transport: new DefaultChatTransport({
-        prepareSendMessagesRequest: ({ messages: sendMessages, trigger }) => {
+        prepareSendMessagesRequest: ({
+          messages: sendMessages,
+          trigger,
+          body,
+        }) => {
           return {
             body: {
+              ...body,
+              messages: undefined,
               id: chat?._id,
               message: sendMessages.at(-1),
               trigger,
@@ -65,27 +73,23 @@ export function Chat({
     setMessages(chat?.messages || []);
   }, [chat, setMessages]);
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (input.trim()) {
-      sendMessage({ text: input, files });
-      setInput('');
-      setFiles([]);
-    }
-  };
-
   return (
     <div className="relative mx-auto size-full h-screen">
       <div className="mx-auto flex h-full max-w-4xl flex-col px-2 py-2 md:pr-2 md:pl-0">
         <Conversation className="h-full">
           <ConversationContent>
+            {messages.length === 0 && <ConversationEmptyState />}
+
             {messages.map((message, messageIdx) => {
               const isLastMessage = messageIdx === messages.length - 1;
 
               return (
                 <div key={message.id}>
                   <Message from={message.role} key={message.id}>
-                    <MessageContent className="relative overflow-visible">
+                    <MessageContent
+                      className="relative overflow-visible"
+                      variant={'flat'}
+                    >
                       {message.parts.map((part, partIdx) => {
                         switch (part.type) {
                           case 'text': {
@@ -97,12 +101,12 @@ export function Chat({
                           }
                           case 'file': {
                             return (
-                              <Attachment
-                                alt={part.filename ?? ''}
-                                contentType={part.mediaType ?? ''}
-                                filename={part.filename ?? ''}
+                              <MessageAttachment
+                                data={{
+                                  ...part,
+                                  id: `${message.id}-${partIdx}`,
+                                }}
                                 key={`${message.id}-${partIdx}`}
-                                src={part.url ?? ''}
                               />
                             );
                           }
@@ -169,12 +173,8 @@ export function Chat({
 
         <div className="p-2 md:p-0">
           <AppPromptInput
-            files={files}
-            input={input}
             model={chat?.model ?? textModels[0]}
-            onSubmitAction={handleSubmit}
-            setFilesAction={setFiles}
-            setInputAction={setInput}
+            onSubmitAction={(message) => sendMessage(message as any)}
             setModelAction={(model) => {
               updateChat({ id: chat?._id as Id<'chats'>, model });
             }}

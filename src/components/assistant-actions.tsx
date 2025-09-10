@@ -18,7 +18,7 @@ export default function AssistantActions({
   const [isCopied, setIsCopied] = useState(false);
 
   return (
-    <Actions className="-bottom-6 absolute left-4">
+    <Actions className="-bottom-8 absolute">
       <Action
         label="Copy"
         onClick={() => {

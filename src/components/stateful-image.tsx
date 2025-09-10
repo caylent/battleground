@@ -29,7 +29,7 @@ export function StatefulImage({
   return (
     <div
       className={cn(
-        'relative my-2 size-40 overflow-hidden rounded-lg bg-muted',
+        'relative mb-2 size-40 overflow-hidden rounded-lg bg-muted',
         className
       )}
     >

@@ -2,26 +2,27 @@
 
 import { useChat } from '@ai-sdk/react';
 import { useAuth } from '@clerk/nextjs';
-import { DefaultChatTransport, type FileUIPart } from 'ai';
+import { DefaultChatTransport } from 'ai';
 import { useMutation } from 'convex/react';
 import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
+import type { PromptInputMessage } from '@/components/ai-elements/prompt-input';
 import { AppPromptInput } from '@/components/app-prompt-input';
 import CaylentLogo from '@/components/caylent-logo';
 import { ChatSuggestions } from '@/components/chat-suggestions';
-import { DEFAULT_TEXT_MODEL, type TextModel } from '@/lib/model/models';
+import { DEFAULT_TEXT_MODEL } from '@/lib/model/models';
 import { api } from '../../../../convex/_generated/api';
+import type { Doc } from '../../../../convex/_generated/dataModel';
 
 export default function ChatMainPage() {
   const router = useRouter();
   const { userId } = useAuth();
-  const [input, setInput] = useState('');
-  const [files, setFiles] = useState<FileUIPart[]>([]);
-  const [model, setModel] = useState<TextModel>(DEFAULT_TEXT_MODEL);
+  const [model, setModel] = useState<Doc<'chats'>['model']>(DEFAULT_TEXT_MODEL);
   const [chatId, setChatId] = useState<string | null>(null);
   const createChat = useMutation(api.chats.create);
+  const [input, setInput] = useState<string>('');
 
   const { sendMessage, status } = useChat({
     transport: new DefaultChatTransport({
@@ -41,10 +42,7 @@ export default function ChatMainPage() {
     setInput(suggestion);
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!input.trim()) return;
-
+  const handleSubmit = async (message: PromptInputMessage) => {
     try {
       const id = await createChat({
         name: 'New Chat',
@@ -53,8 +51,7 @@ export default function ChatMainPage() {
       });
 
       setChatId(id);
-
-      sendMessage({ text: input, files }, { body: { modelId: model, id } });
+      sendMessage(message as any, { body: { modelId: model, id } });
     } catch (error) {
       console.error('Failed to create chat:', error);
       toast.error('Failed to create chat');
@@ -99,12 +96,9 @@ export default function ChatMainPage() {
             <ChatSuggestions onSuggestionClick={handleSuggestionClick} />
 
             <AppPromptInput
-              files={files}
-              input={input}
+              defaultValue={input ?? ''}
               model={model}
               onSubmitAction={handleSubmit}
-              setFilesAction={setFiles}
-              setInputAction={setInput}
               setModelAction={setModel}
               status={status}
             />

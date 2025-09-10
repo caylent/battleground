@@ -18,7 +18,8 @@ export type ImageGenerationToolOutput = z.infer<typeof outputSchema>;
 
 export const ImageGenerationTool = tool({
   name: 'image_generation',
-  description: 'Generate an image',
+  description:
+    'Generate an image. Only use this tool if explicitly asked to generate an image.',
   inputSchema,
   outputSchema,
   execute: async ({ prompt }, { experimental_context }) => {

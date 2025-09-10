@@ -7,6 +7,7 @@ import {
   streamText,
   wrapLanguageModel,
 } from 'ai';
+import { fetchQuery } from 'convex/nextjs';
 import type { NextRequest } from 'next/server';
 import { convertToModelMessageWithAttachments } from '@/lib/convert-to-model-messages';
 import { getRequestCost } from '@/lib/model/get-request-cost';
@@ -15,6 +16,7 @@ import { rateLimit } from '@/lib/rate-limiter';
 import { uploadAttachments } from '@/lib/upload-attachments';
 import { tools } from '@/tools';
 import type { MyUIMessage } from '@/types/app-message';
+import { api } from '../../../../convex/_generated/api';
 
 export async function POST(req: NextRequest) {
   const { userId } = await auth();
@@ -25,8 +27,8 @@ export async function POST(req: NextRequest) {
 
   await rateLimit();
 
-  const { modelId, messages } = (await req.json()) as {
-    modelId: string;
+  const { chatId, messages } = (await req.json()) as {
+    chatId: string;
     messages: MyUIMessage[];
   };
 
@@ -41,9 +43,21 @@ export async function POST(req: NextRequest) {
   try {
     const updatedMessages = [...messages.slice(0, -1), updatedMessage];
 
-    const modelInfo = textModels.find((m) => m.id === modelId);
+    const battle = await fetchQuery(api.battle.getByUserId, { userId });
 
-    const middleware = extractReasoningMiddleware({
+    if (!battle) {
+      return new Response('Battle not found', { status: 404 });
+    }
+
+    const chat = battle.chats.find((c) => c.id === chatId);
+
+    if (!chat) {
+      return new Response('Chat not found', { status: 404 });
+    }
+
+    const modelInfo = textModels.find((m) => m.id === chat.model.id);
+
+    const thinkingMiddleware = extractReasoningMiddleware({
       tagName: 'thinking',
     });
 
@@ -54,7 +68,7 @@ export async function POST(req: NextRequest) {
           : createAmazonBedrock({
               region: modelInfo?.region ?? 'us-east-1',
             })(modelInfo?.id ?? ''),
-      middleware,
+      middleware: [thinkingMiddleware],
     });
 
     const start = Date.now();
@@ -68,7 +82,10 @@ export async function POST(req: NextRequest) {
         userId,
         updatedMessages
       ),
-      tools,
+      activeTools: (chat.model.settings?.activeTools as any) ?? [],
+      tools: modelInfo?.capabilities?.includes('TOOL_STREAMING')
+        ? tools
+        : undefined,
       stopWhen: stepCountIs(5),
       experimental_context: { userId },
     });
@@ -77,7 +94,7 @@ export async function POST(req: NextRequest) {
       messageMetadata: ({ part }) => {
         if (part.type === 'start') {
           const ttft = Date.now() - start;
-          return { modelId, ttft };
+          return { modelId: chat.model.id, ttft };
         }
         if (part.type === 'reasoning-end') {
           const reasoningTime = Date.now() - start;
@@ -96,7 +113,7 @@ export async function POST(req: NextRequest) {
           return {
             totalResponseTime,
             cost: getRequestCost({
-              modelId,
+              modelId: chat.model.id,
               inputTokens: part.totalUsage.inputTokens ?? 0,
               outputTokens: part.totalUsage.outputTokens ?? 0,
             }),

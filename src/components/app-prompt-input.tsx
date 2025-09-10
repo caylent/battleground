@@ -1,58 +1,91 @@
 'use client';
 
-import type { ChatStatus, FileUIPart } from 'ai';
-import { PaperclipIcon } from 'lucide-react';
-import { useFilePicker } from 'use-file-picker';
+import type { ChatStatus } from 'ai';
+import { BrainIcon, ImageIcon, PaperclipIcon } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import {
   PromptInput,
+  PromptInputAttachment,
+  PromptInputAttachments,
+  PromptInputBody,
   PromptInputButton,
+  type PromptInputMessage,
   PromptInputSubmit,
   PromptInputTextarea,
   PromptInputToolbar,
   PromptInputTools,
+  usePromptInputAttachments,
 } from '@/components/ai-elements/prompt-input';
 import { type TextModel, textModels } from '@/lib/model/models';
-import { Attachment } from './attachment';
+import type { Doc } from '../../convex/_generated/dataModel';
 import { ModelCombobox } from './model-combobox';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from './ui/tooltip';
 
 export type AppPromptInputProps = {
   status: ChatStatus;
-  onSubmitAction: (event: React.FormEvent) => void;
-  input: string;
-  setInputAction: (input: string) => void;
-  files: FileUIPart[];
-  setFilesAction: (files: FileUIPart[]) => void;
-  model?: TextModel;
-  setModelAction: (model: TextModel) => void;
+  onSubmitAction: (event: PromptInputMessage) => void;
+  defaultValue?: string;
+  model?: Doc<'chats'>['model'];
+  setModelAction: (model: Doc<'chats'>['model']) => void;
 };
 
 export const AppPromptInput = ({
+  defaultValue = '',
   status,
   onSubmitAction,
-  input,
-  setInputAction,
-  files,
-  setFilesAction,
   model,
   setModelAction,
 }: AppPromptInputProps) => {
-  const { openFilePicker } = useFilePicker({
-    accept: 'image/*, text/*',
-    readAs: 'DataURL',
-    onFilesSuccessfullySelected: ({ filesContent }) => {
-      for (const file of filesContent) {
-        setFilesAction([
-          ...files,
-          {
-            url: file.content,
-            filename: file.name,
-            mediaType: file.type,
-            type: 'file',
-          },
-        ]);
-      }
-    },
-  });
+  const [input, setInput] = useState(defaultValue);
+
+  useEffect(() => {
+    setInput(defaultValue);
+  }, [defaultValue]);
+
+  return (
+    <PromptInput
+      className="relative mt-4 rounded-xl bg-white/5"
+      onSubmit={(message) => {
+        onSubmitAction(message);
+        setInput('');
+      }}
+    >
+      <PromptInputBody>
+        <PromptInputAttachments>
+          {(attachment) => <PromptInputAttachment data={attachment} />}
+        </PromptInputAttachments>
+        <AppPromptInputTextarea
+          input={input}
+          model={model}
+          setInput={setInput}
+        />
+      </PromptInputBody>
+
+      <AppPromptInputToolbar
+        input={input}
+        model={model}
+        setModelAction={setModelAction}
+        status={status}
+      />
+    </PromptInput>
+  );
+};
+
+const AppPromptInputTextarea = ({
+  model,
+  setInput,
+  input,
+}: {
+  model: TextModel | undefined;
+  setInput: (input: string) => void;
+  input: string;
+}) => {
+  const { add } = usePromptInputAttachments();
 
   const handlePaste = (e: React.ClipboardEvent<HTMLTextAreaElement>) => {
     const clipboardData = e.clipboardData;
@@ -67,92 +100,126 @@ export const AppPromptInput = ({
       if (item.kind === 'file') {
         const file = item.getAsFile();
         if (!file) continue;
-
-        // Check if it's an accepted file type (image or text)
-        const isImage = file.type.startsWith('image/');
-        const isText = file.type.startsWith('text/');
-
-        if (isImage || isText) {
-          // Prevent default paste behavior for files
-          e.preventDefault();
-
-          // Read the file and add it as an attachment
-          const reader = new FileReader();
-          reader.onload = (event) => {
-            const content = event.target?.result as string;
-            const newFile: FileUIPart = {
-              url: content,
-              filename: file.name,
-              mediaType: file.type,
-              type: 'file',
-            };
-            setFilesAction([...files, newFile]);
-          };
-          reader.readAsDataURL(file);
-        }
+        add([file]);
       }
     }
   };
 
   return (
-    <PromptInput
-      className="mt-2 rounded-md bg-white/5"
-      onSubmit={onSubmitAction}
-    >
-      {files.length > 0 && (
-        <div className="flex flex-row flex-wrap gap-2 p-2">
-          {files.map((file) => (
-            <Attachment
-              alt={file.filename ?? ''}
-              contentType={file.mediaType ?? ''}
-              filename={file.filename ?? ''}
-              key={file.filename ?? ''}
-              onDeleteAction={() => {
-                setFilesAction(files.filter((f) => f.url !== file.url));
-              }}
-              src={file.url}
-            />
-          ))}
-        </div>
-      )}
-      <PromptInputTextarea
-        onChange={(e) => setInputAction(e.target.value)}
-        onPaste={handlePaste}
-        value={input}
-      />
-      <PromptInputToolbar>
-        <PromptInputTools>
-          <ModelCombobox
-            model={model ?? textModels[0]}
-            setModelAction={setModelAction}
-          />
-          {model?.capabilities?.includes('IMAGE') && (
-            <PromptInputButton onClick={openFilePicker} variant={'ghost'}>
-              <PaperclipIcon className="size-3" />
-            </PromptInputButton>
-          )}
-          {/* <PromptInputModelSelect
-            onValueChange={(value) => {
-              setModelAction(
-                textModels.find((m) => m.id === value) ?? textModels[0]
-              );
-            }}
-            value={model ? model.id : textModels[0].id}
-          >
-            <PromptInputModelSelectTrigger>
-              <PromptInputModelSelectValue />
-            </PromptInputModelSelectTrigger>
-            <PromptInputModelSelectContent>
-              {textModels.map((m) => (
-                <PromptInputModelSelectItem key={m.id} value={m.id}>
-                  {m.name}
-                </PromptInputModelSelectItem>
-              ))}
-            </PromptInputModelSelectContent>
-          </PromptInputModelSelect> */}
-        </PromptInputTools>
-        <PromptInputSubmit disabled={!input} status={status} />
-      </PromptInputToolbar>
-    </PromptInput>
+    <PromptInputTextarea
+      className="min-h-20"
+      onChange={(e) => setInput(e.target.value)}
+      onPaste={handlePaste}
+      value={input}
+    />
+  );
+};
+
+const AppPromptInputToolbar = ({
+  model,
+  setModelAction,
+  status,
+  input,
+}: {
+  model: Doc<'chats'>['model'];
+  setModelAction: (model: Doc<'chats'>['model']) => void;
+  status: ChatStatus;
+  input: string;
+}) => {
+  const { openFileDialog } = usePromptInputAttachments();
+
+  const addActiveTool = (tool: string) => {
+    setModelAction({
+      ...model,
+      settings: {
+        ...model?.settings,
+        activeTools: [...(model?.settings?.activeTools ?? []), tool],
+      },
+    } as Doc<'chats'>['model']);
+  };
+
+  const removeActiveTool = (tool: string) => {
+    setModelAction({
+      ...model,
+      settings: {
+        ...model?.settings,
+        activeTools: model?.settings?.activeTools?.filter((t) => t !== tool),
+      },
+    } as Doc<'chats'>['model']);
+  };
+
+  return (
+    <PromptInputToolbar>
+      <PromptInputTools>
+        <ModelCombobox
+          model={model ?? textModels[0]}
+          setModelAction={setModelAction}
+        />
+        {model?.capabilities?.includes('TOOL_STREAMING') && (
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <PromptInputButton
+                  onClick={() => {
+                    if (
+                      model?.settings?.activeTools?.includes('image_generation')
+                    ) {
+                      removeActiveTool('image_generation');
+                    } else {
+                      addActiveTool('image_generation');
+                    }
+                  }}
+                  variant={
+                    model?.settings?.activeTools?.includes('image_generation')
+                      ? 'outline'
+                      : 'ghost'
+                  }
+                >
+                  <ImageIcon className="size-3.5" />
+                  Image
+                </PromptInputButton>
+              </TooltipTrigger>
+              <TooltipContent>Enable Image Generation</TooltipContent>
+            </Tooltip>
+
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <PromptInputButton
+                  onClick={() => {
+                    if (
+                      model?.settings?.activeTools?.includes(
+                        'global_context_manager'
+                      )
+                    ) {
+                      removeActiveTool('global_context_manager');
+                    } else {
+                      addActiveTool('global_context_manager');
+                    }
+                  }}
+                  variant={
+                    model?.settings?.activeTools?.includes(
+                      'global_context_manager'
+                    )
+                      ? 'outline'
+                      : 'ghost'
+                  }
+                >
+                  <BrainIcon className="size-3.5" />
+                  GCM
+                </PromptInputButton>
+              </TooltipTrigger>
+              <TooltipContent>Enable Global Context Manager</TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        )}
+      </PromptInputTools>
+      <PromptInputButton
+        className="mr-2 ml-auto size-7"
+        onClick={openFileDialog}
+      >
+        <PaperclipIcon className="size-3.5" />
+      </PromptInputButton>
+      <PromptInputSubmit disabled={!input} status={status} />
+    </PromptInputToolbar>
   );
 };

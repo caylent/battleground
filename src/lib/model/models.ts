@@ -25,6 +25,7 @@ export type VideoModelId = 'amazon.nova-reel-v1:0' | 'luma.ray-v2:0';
 export type TextModelCapabilities =
   | 'IMAGE'
   | 'TOOLS'
+  | 'TOOL_STREAMING'
   | 'REASONING'
   | 'VIDEO'
   | (string & {});
@@ -42,7 +43,7 @@ export type TextModel = {
 export const DEFAULT_TEXT_MODEL_ID =
   'us.anthropic.claude-sonnet-4-20250514-v1:0';
 
-export const textModels = [
+export const textModels: TextModel[] = [
   {
     provider: 'Amazon',
     id: 'us.amazon.nova-micro-v1:0',
@@ -50,7 +51,7 @@ export const textModels = [
     name: 'Nova Micro',
     inputCostPerToken: 0.000_003_5 / 1e3,
     outputCostPerToken: 0.000_14 / 1e3,
-    capabilities: ['TOOLS'],
+    capabilities: ['TOOLS', 'TOOL_STREAMING'],
   },
   {
     provider: 'Amazon',
@@ -59,7 +60,7 @@ export const textModels = [
     name: 'Nova Lite',
     inputCostPerToken: 0.000_06 / 1e3,
     outputCostPerToken: 0.000_24 / 1e3,
-    capabilities: ['IMAGE', 'TOOLS', 'VIDEO'],
+    capabilities: ['IMAGE', 'TOOLS', 'VIDEO', 'TOOL_STREAMING'],
   },
   {
     provider: 'Amazon',
@@ -68,7 +69,7 @@ export const textModels = [
     name: 'Nova Pro',
     inputCostPerToken: 0.0008 / 1e3,
     outputCostPerToken: 0.0032 / 1e3,
-    capabilities: ['IMAGE', 'TOOLS', 'VIDEO'],
+    capabilities: ['IMAGE', 'TOOLS', 'VIDEO', 'TOOL_STREAMING'],
   },
   {
     provider: 'Amazon',
@@ -77,7 +78,7 @@ export const textModels = [
     name: 'Nova Premier',
     inputCostPerToken: 0.0025 / 1e3,
     outputCostPerToken: 0.0125 / 1e3,
-    capabilities: ['IMAGE', 'REASONING', 'TOOLS', 'VIDEO'],
+    capabilities: ['IMAGE', 'REASONING', 'TOOLS', 'VIDEO', 'TOOL_STREAMING'],
   },
   {
     provider: 'Anthropic',
@@ -85,7 +86,7 @@ export const textModels = [
     name: 'Claude 3 Haiku',
     inputCostPerToken: 0.000_25 / 1e3,
     outputCostPerToken: 0.001_25 / 1e3,
-    capabilities: ['TOOLS', 'IMAGE'],
+    capabilities: ['TOOLS', 'IMAGE', 'TOOL_STREAMING'],
   },
   {
     provider: 'Anthropic',
@@ -94,7 +95,7 @@ export const textModels = [
     region: 'us-west-2',
     inputCostPerToken: 0.0008 / 1e3,
     outputCostPerToken: 0.0004 / 1e3,
-    capabilities: ['TOOLS'],
+    capabilities: ['TOOLS', 'TOOL_STREAMING'],
   },
   {
     provider: 'Anthropic',
@@ -102,7 +103,7 @@ export const textModels = [
     name: 'Claude 3 Sonnet',
     inputCostPerToken: 0.003 / 1e3,
     outputCostPerToken: 0.015 / 1e3,
-    capabilities: ['IMAGE', 'TOOLS'],
+    capabilities: ['IMAGE', 'TOOLS', 'TOOL_STREAMING'],
   },
   {
     provider: 'Anthropic',
@@ -111,7 +112,7 @@ export const textModels = [
     region: 'us-west-2',
     inputCostPerToken: 0.015 / 1e3,
     outputCostPerToken: 0.075 / 1e3,
-    capabilities: ['IMAGE', 'TOOLS'],
+    capabilities: ['IMAGE', 'TOOLS', 'TOOL_STREAMING'],
   },
   {
     provider: 'Anthropic',
@@ -119,7 +120,7 @@ export const textModels = [
     name: 'Claude 3.5 Sonnet',
     inputCostPerToken: 0.003 / 1e3,
     outputCostPerToken: 0.015 / 1e3,
-    capabilities: ['IMAGE', 'TOOLS'],
+    capabilities: ['IMAGE', 'TOOLS', 'TOOL_STREAMING'],
   },
   {
     provider: 'Anthropic',
@@ -128,7 +129,7 @@ export const textModels = [
     name: 'Claude 3.5 Sonnet V2',
     inputCostPerToken: 0.003 / 1e3,
     outputCostPerToken: 0.015 / 1e3,
-    capabilities: ['IMAGE', 'TOOLS'],
+    capabilities: ['IMAGE', 'TOOLS', 'TOOL_STREAMING'],
   },
   {
     provider: 'Anthropic',
@@ -136,7 +137,7 @@ export const textModels = [
     name: 'Claude 3.7 Sonnet',
     inputCostPerToken: 0.003 / 1e3,
     outputCostPerToken: 0.015 / 1e3,
-    capabilities: ['IMAGE', 'TOOLS'],
+    capabilities: ['IMAGE', 'TOOLS', 'TOOL_STREAMING'],
   },
   {
     provider: 'Anthropic',
@@ -145,7 +146,7 @@ export const textModels = [
     name: 'Claude 4 Sonnet',
     inputCostPerToken: 0.003 / 1e3,
     outputCostPerToken: 0.015 / 1e3,
-    capabilities: ['IMAGE', 'TOOLS', 'REASONING'],
+    capabilities: ['IMAGE', 'TOOLS', 'REASONING', 'TOOL_STREAMING'],
   },
   {
     provider: 'Anthropic',
@@ -154,7 +155,7 @@ export const textModels = [
     name: 'Claude 4 Opus',
     inputCostPerToken: 0.015 / 1e3,
     outputCostPerToken: 0.075 / 1e3,
-    capabilities: ['IMAGE', 'TOOLS', 'REASONING'],
+    capabilities: ['IMAGE', 'TOOLS', 'REASONING', 'TOOL_STREAMING'],
   },
   {
     provider: 'Anthropic',
@@ -163,7 +164,7 @@ export const textModels = [
     name: 'Claude 4.1 Opus',
     inputCostPerToken: 0.015 / 1e3,
     outputCostPerToken: 0.075 / 1e3,
-    capabilities: ['IMAGE', 'TOOLS', 'REASONING'],
+    capabilities: ['IMAGE', 'TOOLS', 'REASONING', 'TOOL_STREAMING'],
   },
   {
     provider: 'Deepseek',
@@ -172,7 +173,7 @@ export const textModels = [
     region: 'us-west-2',
     inputCostPerToken: 0.001_35 / 1e3,
     outputCostPerToken: 0.0054 / 1e3,
-    capabilities: ['TOOLS', 'REASONING'],
+    capabilities: ['TOOLS', 'REASONING', 'TOOL_STREAMING'],
   },
   {
     provider: 'Cohere',
@@ -181,7 +182,7 @@ export const textModels = [
     region: 'us-west-2',
     inputCostPerToken: 0.0005 / 1e3,
     outputCostPerToken: 0.0015 / 1e3,
-    capabilities: ['TOOLS'],
+    capabilities: ['TOOLS', 'TOOL_STREAMING'],
   },
   {
     provider: 'Cohere',
@@ -189,7 +190,7 @@ export const textModels = [
     name: 'Command R+',
     inputCostPerToken: 0.003 / 1e3,
     outputCostPerToken: 0.015 / 1e3,
-    capabilities: ['TOOLS'],
+    capabilities: ['TOOLS', 'TOOL_STREAMING'],
   },
   {
     provider: 'Meta',
@@ -346,14 +347,20 @@ export const textModels = [
     id: 'us.writer.palmyra-x4-v1:0',
     name: 'Palmyra X4',
     region: 'us-west-2',
+    inputCostPerToken: 0.002 / 1e3,
+    outputCostPerToken: 0.01 / 1e3,
+    capabilities: ['TOOLS'],
   },
   {
     provider: 'Writer',
     id: 'us.writer.palmyra-x5-v1:0',
     name: 'Palmyra X5',
     region: 'us-west-2',
+    inputCostPerToken: 0.0006 / 1e3,
+    outputCostPerToken: 0.006 / 1e3,
+    capabilities: ['TOOLS'],
   },
-] satisfies TextModel[];
+];
 
 export const DEFAULT_TEXT_MODEL =
   textModels.find((m) => m.id === DEFAULT_TEXT_MODEL_ID) ?? textModels[0];

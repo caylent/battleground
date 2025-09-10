@@ -22,6 +22,6 @@ const dataPartSchema = z.object({});
 
 type MyDataPart = z.infer<typeof dataPartSchema>;
 
-type MyTools = InferUITools<typeof tools>;
+export type MyTools = InferUITools<typeof tools>;
 
 export type MyUIMessage = UIMessage<MyMetadata, MyDataPart, MyTools>;

@@ -18,6 +18,7 @@ import {
 } from '@/components/ui/popover';
 import { type TextModel, textModels } from '@/lib/model/models';
 import { cn } from '@/lib/utils';
+import { getProviderIcon } from './provider-icons';
 
 export function ModelCombobox({
   model,
@@ -33,17 +34,18 @@ export function ModelCombobox({
       <PopoverTrigger asChild>
         <Button
           aria-expanded={open}
-          className="justify-between font-light"
+          className="h-7 justify-between font-light text-xs"
           role="combobox"
           variant="ghost"
         >
+          {getProviderIcon(model.provider)}
           {model.id
             ? textModels.find((m) => m.id === model.id)?.name
             : 'Select framework...'}
           <ChevronsUpDownIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent align="start" className="p-0" side="top">
+      <PopoverContent align="start" className="w-fit p-0" side="top">
         <Command>
           <CommandInput placeholder="Search models..." />
           <CommandList>
@@ -61,13 +63,14 @@ export function ModelCombobox({
                   }}
                   value={m.id}
                 >
+                  {getProviderIcon(m.provider)}
+                  {m.name}
                   <CheckIcon
                     className={cn(
-                      'mr-2 h-4 w-4',
+                      'mr-2 ml-auto h-4 w-4',
                       model.id === m.id ? 'opacity-100' : 'opacity-0'
                     )}
                   />
-                  {m.name}
                 </CommandItem>
               ))}
             </CommandGroup>

@@ -38,3 +38,23 @@ export const update = mutation({
     return await ctx.db.patch(args.id, { chats: args.chats });
   },
 });
+
+export const updateChat = mutation({
+  args: {
+    battleId: v.id("battles"),
+    chatId: v.string(),
+    model: modelSchema,
+  },
+  handler: async (ctx, args) => {
+    const battle = await ctx.db.get(args.battleId);
+    if (!battle) {
+      throw new Error("Battle not found");
+    }
+    const updateIndex = battle.chats.findIndex(c => c.id === args.chatId);
+    if (updateIndex === -1) {
+      throw new Error("Chat not found");
+    }
+    battle.chats[updateIndex].model = args.model;
+    await ctx.db.patch(args.battleId, { chats: battle.chats });
+  },
+});
