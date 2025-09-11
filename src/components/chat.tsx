@@ -45,7 +45,7 @@ export function BattleWrapper({
   };
 
   return chats.map((chat) => (
-    <div className="h-screen shrink-0 py-2" key={chat?._id}>
+    <div className="h-screen py-2" key={chat?._id}>
       <div className="flex h-full w-xl flex-col rounded-lg border p-2">
         <Chat
           chat={chat}
@@ -69,8 +69,8 @@ export function ChatWrapper({
   }
 
   return (
-    <div className="relative mx-auto size-full h-screen">
-      <div className="mx-auto flex h-full max-w-4xl flex-col px-2 py-2 md:pr-2 md:pl-0">
+    <div className="relative mx-auto h-screen w-full md:w-[calc(100vw-var(--sidebar-width))]">
+      <div className="mx-auto flex h-full min-w-0 max-w-4xl flex-col px-2 py-2 md:pr-2 md:pl-0">
         <Chat chat={chat} />
       </div>
     </div>
@@ -108,7 +108,6 @@ export function Chat({
           const lastUserMessage = sendMessages.findLast(
             (message) => message.role === 'user'
           );
-          console.log('lastUserMessage', lastUserMessage);
           return {
             body: {
               ...body,

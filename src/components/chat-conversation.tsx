@@ -60,11 +60,7 @@ export default function ChatConversation({
 
           return (
             <div key={message.id}>
-              <Message
-                className="max-w-full"
-                from={message.role}
-                key={message.id}
-              >
+              <Message from={message.role} key={message.id}>
                 <MessageContent
                   className="relative overflow-visible"
                   variant="flat"
