@@ -13,6 +13,10 @@ export const modelSchema = v.object({
     systemPrompt: v.optional(v.string()),
     temperature: v.optional(v.number()),
     maxTokens: v.optional(v.number()),
+    reasoning: v.optional(v.object({
+      enabled: v.optional(v.boolean()),
+      level: v.optional(v.union(v.literal('low'), v.literal('med'), v.literal('high'))),
+    })),
     activeTools: v.optional(v.array(v.string())),
   })),
 });

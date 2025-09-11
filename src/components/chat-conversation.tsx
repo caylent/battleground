@@ -65,6 +65,13 @@ export default function ChatConversation({
                   className="relative overflow-visible"
                   variant="flat"
                 >
+                  {message.parts.length === 0 && (
+                    <div>
+                      {message.metadata?.error ??
+                        'Error occured processing your message'}
+                    </div>
+                  )}
+
                   {message.parts.map((part, partIdx) => {
                     switch (part.type) {
                       case 'text': {
@@ -142,17 +149,17 @@ export default function ChatConversation({
                     )}
                 </MessageContent>
               </Message>
-              {(status === 'error' || message.metadata?.error) && (
-                <div className="mx-auto flex max-w-xl flex-col items-center gap-2 rounded-xl border bg-muted/20 p-4 text-sm">
-                  Error: {error}
-                  <Button onClick={onRetryAction} variant="secondary">
-                    Try again
-                  </Button>
-                </div>
-              )}
             </div>
           );
         })}
+        {status === 'error' && (
+          <div className="mx-auto flex max-w-xl flex-col items-center gap-2 rounded-xl border bg-muted/20 p-4 text-sm">
+            Error: {error}
+            <Button onClick={onRetryAction} variant="secondary">
+              Try again
+            </Button>
+          </div>
+        )}
         {status === 'submitted' && <Spinner variant="ellipsis" />}
       </ConversationContent>
       <ConversationScrollButton />

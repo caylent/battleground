@@ -114,7 +114,8 @@ export async function POST(req: NextRequest) {
       maxOutputTokens: chat.model?.settings?.maxTokens,
       temperature: chat.model?.settings?.temperature,
       experimental_context: { userId },
-      ...(chat.model?.capabilities?.includes('REASONING')
+      ...(chat.model?.capabilities?.includes('REASONING') &&
+      chat.model?.settings?.reasoning?.enabled
         ? {
             providerOptions: {
               bedrock: {

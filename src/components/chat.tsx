@@ -2,6 +2,7 @@
 
 import { useChat } from '@ai-sdk/react';
 import { DefaultChatTransport } from 'ai';
+import { AIDevtools } from 'ai-sdk-devtools';
 import { type Preloaded, useMutation, usePreloadedQuery } from 'convex/react';
 import { notFound } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
@@ -166,6 +167,8 @@ export function Chat({
           status={status}
         />
       </div>
+
+      {process.env.NODE_ENV === 'development' && <AIDevtools />}
     </>
   );
 }
