@@ -415,3 +415,20 @@ export const getChatWithMessagePagination = query({
     };
   },
 });
+
+export const clearBattleChats = mutation({
+  args: {
+    userId: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const chats = await ctx.db.query("chats").filter((q) => q.eq(q.field("userId"), args.userId)).filter((q) => q.eq(q.field("type"), "battle")).collect();
+    for (const chat of chats) {
+      await ctx.db.patch(chat._id, {
+        messages: [],
+        messageCount: 0,
+        updatedAt: Date.now(),
+      });
+    }
+    return chats;
+  },
+});

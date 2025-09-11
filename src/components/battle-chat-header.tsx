@@ -1,18 +1,26 @@
 import { useAuth } from '@clerk/nextjs';
 import { useMutation } from 'convex/react';
-import { MinusIcon, PlusIcon } from 'lucide-react';
+import { MinusIcon, MoreHorizontal, PlusIcon } from 'lucide-react';
 import { api } from '../../convex/_generated/api';
 import type { Doc } from '../../convex/_generated/dataModel';
 import { ModelCombobox } from './model-combobox';
 import { Button } from './ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from './ui/dropdown-menu';
 
 export const BattleChatHeader = ({ chat }: { chat: Doc<'chats'> }) => {
   const { userId } = useAuth();
   const createChat = useMutation(api.chats.create);
   const deleteChat = useMutation(api.chats.remove);
+  const updateChat = useMutation(api.chats.update);
+  const clearBattleChats = useMutation(api.chats.clearBattleChats);
 
   return (
-    <div className="-m-2 flex items-center rounded-t-lg bg-white/5 p-2">
+    <div className="-m-2 mb-2 flex items-center rounded-t-lg bg-white/5 p-2">
       <span className="mr-auto text-sm text-white/50">{chat.model?.name}</span>
       <div className="flex items-center gap-2">
         <ModelCombobox
@@ -43,6 +51,29 @@ export const BattleChatHeader = ({ chat }: { chat: Doc<'chats'> }) => {
         >
           <MinusIcon className="size-4" />
         </Button>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              className="size-7 hover:bg-white/10!"
+              size="icon"
+              variant="ghost"
+            >
+              <MoreHorizontal className="size-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" side="bottom">
+            <DropdownMenuItem
+              onClick={() => updateChat({ id: chat._id, messages: [] })}
+            >
+              <span>Clear chat</span>
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() => clearBattleChats({ userId: userId ?? '' })}
+            >
+              <span>Clear all chats</span>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
     </div>
   );

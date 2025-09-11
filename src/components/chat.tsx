@@ -125,8 +125,6 @@ export function Chat({
       },
     });
 
-  console.log('status', status);
-
   useEffect(() => {
     setMessages(chat.messages || []);
   }, [chat, setMessages]);

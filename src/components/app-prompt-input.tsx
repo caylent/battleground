@@ -223,12 +223,14 @@ const AppPromptInputToolbar = ({
             </TooltipProvider>
           )}
       </PromptInputTools>
-      <PromptInputButton
-        className="mr-2 ml-auto size-7"
-        onClick={openFileDialog}
-      >
-        <PaperclipIcon className="size-3.5" />
-      </PromptInputButton>
+      {model?.capabilities?.includes('IMAGE') && (
+        <PromptInputButton
+          className="mr-2 ml-auto size-7"
+          onClick={openFileDialog}
+        >
+          <PaperclipIcon className="size-3.5" />
+        </PromptInputButton>
+      )}
       <PromptInputSubmit disabled={!input} status={status} />
     </PromptInputToolbar>
   );
