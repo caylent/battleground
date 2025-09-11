@@ -28,7 +28,7 @@ export const chatSchema = defineTable({
   isFavorite: v.optional(v.boolean()),
   isArchived: v.optional(v.boolean()),
   activeStreamId: v.optional(v.string()),
-  model: v.optional(modelSchema),
+  model: modelSchema,
   type: v.union(v.literal('chat'), v.literal('battle')),
 });
 

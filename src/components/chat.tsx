@@ -10,9 +10,9 @@ import { api } from '../../convex/_generated/api';
 import type { Doc, Id } from '../../convex/_generated/dataModel';
 import type { PromptInputMessage } from './ai-elements/prompt-input';
 import { AppPromptInput } from './app-prompt-input';
+import { BattleChatHeader } from './battle-chat-header';
 import ChatConversation from './chat-conversation';
 
-// This is used for the battle chats only
 export function BattleWrapper({
   preloadedChats,
 }: {
@@ -97,7 +97,7 @@ export function Chat({
   const { messages, sendMessage, status, regenerate, setMessages } =
     useChat<MyUIMessage>({
       id: chat._id,
-      resume: true,
+      resume: !!chat.activeStreamId,
       messages: chat.messages,
       transport: new DefaultChatTransport({
         prepareSendMessagesRequest: ({
@@ -126,6 +126,8 @@ export function Chat({
       },
     });
 
+  console.log('status', status);
+
   useEffect(() => {
     setMessages(chat.messages || []);
   }, [chat, setMessages]);
@@ -141,6 +143,8 @@ export function Chat({
 
   return (
     <>
+      {chat.type === 'battle' && <BattleChatHeader chat={chat} />}
+
       <ChatConversation
         chat={chat}
         error={error}

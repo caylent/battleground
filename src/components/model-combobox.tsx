@@ -23,27 +23,31 @@ import { getProviderIcon } from './provider-icons';
 export function ModelCombobox({
   model,
   setModelAction,
+  trigger,
 }: {
   model: TextModel;
   setModelAction: (model: TextModel) => void;
+  trigger?: React.ReactNode;
 }) {
   const [open, setOpen] = React.useState(false);
 
   return (
     <Popover onOpenChange={setOpen} open={open}>
       <PopoverTrigger asChild>
-        <Button
-          aria-expanded={open}
-          className="h-7 justify-between font-light text-xs"
-          role="combobox"
-          variant="ghost"
-        >
-          {getProviderIcon(model.provider)}
-          {model.id
-            ? textModels.find((m) => m.id === model.id)?.name
-            : 'Select framework...'}
-          <ChevronsUpDownIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-        </Button>
+        {trigger || (
+          <Button
+            aria-expanded={open}
+            className="h-7 justify-between font-light text-xs"
+            role="combobox"
+            variant="ghost"
+          >
+            {getProviderIcon(model.provider)}
+            {model.id
+              ? textModels.find((m) => m.id === model.id)?.name
+              : 'Select framework...'}
+            <ChevronsUpDownIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+          </Button>
+        )}
       </PopoverTrigger>
       <PopoverContent align="start" className="w-fit p-0" side="top">
         <Command>

@@ -58,7 +58,7 @@ export const getAllByUser = query({
     type: v.optional(v.union(v.literal('chat'), v.literal('battle'))),
   },
   handler: async (ctx, args) => {
-    let query = ctx.db.query("chats").order("desc")
+    let query = ctx.db.query("chats").order("asc")
 
     if (args.userId) {
       query = query.filter((q) => q.eq(q.field("userId"), args.userId));
@@ -175,7 +175,7 @@ export const create = mutation({
     name: v.string(),
     type: v.optional(v.union(v.literal('chat'), v.literal('battle'))),
     userId: v.string(),
-    model: v.optional(modelSchema),
+    model: modelSchema,
   },
   handler: async (ctx, args) => {
     const now = Date.now();
@@ -356,6 +356,7 @@ export const branch = mutation({
     const newChatId = await ctx.db.insert("chats", {
       name: branchName,
       userId: originalChat.userId,
+      model: originalChat.model,
       messages: branchedMessages,
       updatedAt: now,
       messageCount: branchedMessages.length,

@@ -44,10 +44,8 @@ export default async function ChatPage() {
   });
 
   return (
-    <main className="flex max-h-screen-h-0 flex-1 flex-col overflow-hidden">
-      <div className="scrollbar-none ml-1 flex flex-1 gap-2 overflow-x-auto">
-        <BattleWrapper preloadedChats={preloadedChats} />
-      </div>
-    </main>
+    <div className="scrollbar-thin flex max-w-full gap-1 overflow-x-auto">
+      <BattleWrapper preloadedChats={preloadedChats} />
+    </div>
   );
 }
