@@ -176,10 +176,6 @@ body {
   @apply flex flex-col items-center self-stretch bg-inherit;
 }
 
-[data-streamdown="table-wrapper"] {
-  @apply w-full;
-}
-
-[data-streamdown="table"] {
-  @apply w-full;
+[data-streamdown="table-wrapper"] > *:nth-child(2) {
+  @apply scrollbar-thin scrollbar-thumb-muted-foreground/10 scrollbar-track-transparent py-1;
 }
