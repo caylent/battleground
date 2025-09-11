@@ -45,7 +45,7 @@ export function BattleWrapper({
   };
 
   return chats.map((chat) => (
-    <div className="h-screen py-2" key={chat?._id}>
+    <div className="h-screen shrink-0 py-2" key={chat?._id}>
       <div className="flex h-full w-xl flex-col rounded-lg border p-2">
         <Chat
           chat={chat}
