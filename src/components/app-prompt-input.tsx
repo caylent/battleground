@@ -30,7 +30,8 @@ export type AppPromptInputProps = {
   status: ChatStatus;
   onSubmitAction: (event: PromptInputMessage) => void;
   defaultValue?: string;
-  model?: Doc<'chats'>['model'];
+  model: Doc<'chats'>['model'];
+  chatType: Doc<'chats'>['type'];
   setModelAction: (model: Doc<'chats'>['model']) => void;
 };
 
@@ -39,6 +40,7 @@ export const AppPromptInput = ({
   status,
   onSubmitAction,
   model,
+  chatType,
   setModelAction,
 }: AppPromptInputProps) => {
   const [input, setInput] = useState(defaultValue);
@@ -50,6 +52,8 @@ export const AppPromptInput = ({
   return (
     <PromptInput
       className="relative mt-4 rounded-xl bg-white/5"
+      globalDrop
+      multiple
       onSubmit={(message) => {
         onSubmitAction(message);
         setInput('');
@@ -67,6 +71,7 @@ export const AppPromptInput = ({
       </PromptInputBody>
 
       <AppPromptInputToolbar
+        chatType={chatType}
         input={input}
         model={model}
         setModelAction={setModelAction}
@@ -117,11 +122,13 @@ const AppPromptInputTextarea = ({
 
 const AppPromptInputToolbar = ({
   model,
+  chatType,
   setModelAction,
   status,
   input,
 }: {
   model: Doc<'chats'>['model'];
+  chatType: Doc<'chats'>['type'];
   setModelAction: (model: Doc<'chats'>['model']) => void;
   status: ChatStatus;
   input: string;
@@ -155,63 +162,66 @@ const AppPromptInputToolbar = ({
           model={model ?? textModels[0]}
           setModelAction={setModelAction}
         />
-        {model?.capabilities?.includes('TOOL_STREAMING') && (
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <PromptInputButton
-                  onClick={() => {
-                    if (
+        {model?.capabilities?.includes('TOOL_STREAMING') &&
+          chatType === 'chat' && (
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <PromptInputButton
+                    onClick={() => {
+                      if (
+                        model?.settings?.activeTools?.includes(
+                          'image_generation'
+                        )
+                      ) {
+                        removeActiveTool('image_generation');
+                      } else {
+                        addActiveTool('image_generation');
+                      }
+                    }}
+                    variant={
                       model?.settings?.activeTools?.includes('image_generation')
-                    ) {
-                      removeActiveTool('image_generation');
-                    } else {
-                      addActiveTool('image_generation');
+                        ? 'outline'
+                        : 'ghost'
                     }
-                  }}
-                  variant={
-                    model?.settings?.activeTools?.includes('image_generation')
-                      ? 'outline'
-                      : 'ghost'
-                  }
-                >
-                  <ImageIcon className="size-3.5" />
-                  Image
-                </PromptInputButton>
-              </TooltipTrigger>
-              <TooltipContent>Enable Image Generation</TooltipContent>
-            </Tooltip>
+                  >
+                    <ImageIcon className="size-3.5" />
+                    Image
+                  </PromptInputButton>
+                </TooltipTrigger>
+                <TooltipContent>Enable Image Generation</TooltipContent>
+              </Tooltip>
 
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <PromptInputButton
-                  onClick={() => {
-                    if (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <PromptInputButton
+                    onClick={() => {
+                      if (
+                        model?.settings?.activeTools?.includes(
+                          'global_context_manager'
+                        )
+                      ) {
+                        removeActiveTool('global_context_manager');
+                      } else {
+                        addActiveTool('global_context_manager');
+                      }
+                    }}
+                    variant={
                       model?.settings?.activeTools?.includes(
                         'global_context_manager'
                       )
-                    ) {
-                      removeActiveTool('global_context_manager');
-                    } else {
-                      addActiveTool('global_context_manager');
+                        ? 'outline'
+                        : 'ghost'
                     }
-                  }}
-                  variant={
-                    model?.settings?.activeTools?.includes(
-                      'global_context_manager'
-                    )
-                      ? 'outline'
-                      : 'ghost'
-                  }
-                >
-                  <BrainIcon className="size-3.5" />
-                  GCM
-                </PromptInputButton>
-              </TooltipTrigger>
-              <TooltipContent>Enable Global Context Manager</TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-        )}
+                  >
+                    <BrainIcon className="size-3.5" />
+                    GCM
+                  </PromptInputButton>
+                </TooltipTrigger>
+                <TooltipContent>Enable Global Context Manager</TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          )}
       </PromptInputTools>
       <PromptInputButton
         className="mr-2 ml-auto size-7"

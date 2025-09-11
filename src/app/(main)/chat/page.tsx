@@ -51,7 +51,7 @@ export default function ChatMainPage() {
       });
 
       setChatId(id);
-      sendMessage(message as any, { body: { modelId: model, id } });
+      sendMessage(message as any, { body: { id } });
     } catch (error) {
       console.error('Failed to create chat:', error);
       toast.error('Failed to create chat');
@@ -96,6 +96,7 @@ export default function ChatMainPage() {
             <ChatSuggestions onSuggestionClick={handleSuggestionClick} />
 
             <AppPromptInput
+              chatType="chat"
               defaultValue={input ?? ''}
               model={model}
               onSubmitAction={handleSubmit}

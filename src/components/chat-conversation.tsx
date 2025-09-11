@@ -1,5 +1,6 @@
 'use client';
 
+import type { ChatStatus } from 'ai';
 import {
   Conversation,
   ConversationContent,
@@ -18,6 +19,7 @@ import {
 } from '@/components/ai-elements/reasoning';
 import { Response } from '@/components/ai-elements/response';
 import type { MyUIMessage } from '@/types/app-message';
+import type { Doc } from '../../convex/_generated/dataModel';
 import {
   Tool,
   ToolContent,
@@ -33,22 +35,20 @@ import UserActions from './user-actions';
 
 export type ChatConversationProps = {
   messages: MyUIMessage[];
-  status: string;
+  status: ChatStatus;
   error?: string | null;
-  onRetryAction?: () => void;
-  chatId?: string;
-  onRegenerateAction?: (messageId: string) => void;
-  hideEmptyText?: boolean;
+  onRetryAction: () => void;
+  chat: Doc<'chats'>;
+  onRegenerateAction: (messageId: string) => void;
 };
 
 export default function ChatConversation({
+  chat,
   messages,
   status,
   error,
   onRetryAction,
-  chatId,
   onRegenerateAction,
-  hideEmptyText = false,
 }: ChatConversationProps) {
   return (
     <Conversation className="h-full">
@@ -60,7 +60,11 @@ export default function ChatConversation({
 
           return (
             <div key={message.id}>
-              <Message from={message.role} key={message.id}>
+              <Message
+                className="max-w-full"
+                from={message.role}
+                key={message.id}
+              >
                 <MessageContent
                   className="relative overflow-visible"
                   variant="flat"
@@ -68,7 +72,7 @@ export default function ChatConversation({
                   {message.parts.map((part, partIdx) => {
                     switch (part.type) {
                       case 'text': {
-                        if (hideEmptyText && part.text.trim() === '') {
+                        if (part.text.trim() === '') {
                           return null;
                         }
                         return (
@@ -128,31 +132,32 @@ export default function ChatConversation({
                   })}
 
                   {message.role === 'user' && (
-                    <UserActions chatId={chatId} message={message} />
+                    <UserActions chat={chat} message={message} />
                   )}
 
                   {message.role === 'assistant' &&
                     (!isLastMessage ||
                       (status === 'ready' && isLastMessage)) && (
                       <AssistantActions
+                        chat={chat}
                         message={message}
                         onRegenerateAction={onRegenerateAction}
                       />
                     )}
                 </MessageContent>
               </Message>
+              {(status === 'error' || message.metadata?.error) && (
+                <div className="mx-auto flex max-w-xl flex-col items-center gap-2 rounded-xl border bg-muted/20 p-4 text-sm">
+                  Error: {error}
+                  <Button onClick={onRetryAction} variant="secondary">
+                    Try again
+                  </Button>
+                </div>
+              )}
             </div>
           );
         })}
         {status === 'submitted' && <Spinner variant="ellipsis" />}
-        {status === 'error' && (
-          <div className="mx-auto flex max-w-xl flex-col items-center gap-2 rounded-xl border bg-muted/20 p-4 text-sm">
-            Error: {error}
-            <Button onClick={onRetryAction} variant="secondary">
-              Try again
-            </Button>
-          </div>
-        )}
       </ConversationContent>
       <ConversationScrollButton />
     </Conversation>

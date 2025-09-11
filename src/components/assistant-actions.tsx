@@ -3,15 +3,18 @@
 import { CheckIcon, CopyIcon, InfoIcon, RefreshCcwIcon } from 'lucide-react';
 import { useState } from 'react';
 import type { MyUIMessage } from '@/types/app-message';
+import type { Doc } from '../../convex/_generated/dataModel';
 import { Action, Actions } from './ai-elements/actions';
 import InlineMetadata from './inline-metadata';
 
 export type AssistantActionsProps = {
+  chat: Doc<'chats'>;
   message: MyUIMessage;
-  onRegenerateAction?: (messageId: string) => void;
+  onRegenerateAction: (messageId: string) => void;
 };
 
 export default function AssistantActions({
+  chat,
   message,
   onRegenerateAction,
 }: AssistantActionsProps) {
@@ -41,7 +44,7 @@ export default function AssistantActions({
           <CopyIcon className="size-3" />
         )}
       </Action>
-      {onRegenerateAction && (
+      {chat.type === 'chat' && (
         <Action label="Retry" onClick={() => onRegenerateAction(message.id)}>
           <RefreshCcwIcon className="size-3" />
         </Action>

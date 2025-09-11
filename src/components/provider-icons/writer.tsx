@@ -19,13 +19,13 @@ export const Writer = (props: SVGProps<SVGSVGElement>) => {
         fillRule="evenodd"
       />
       <path
-        clip-rule="evenodd"
+        clipRule="evenodd"
         d="M38.9843 27.8425H35.5986L43.2172 59.2755H46.6029H50.8358H54.2215L46.6029 27.8425H43.2172H38.9843Z"
         fill="white"
         fillRule="evenodd"
       />
       <path
-        clip-rule="evenodd"
+        clipRule="evenodd"
         d="M29.7845 27.8428H22.1659L22.1661 27.8434H18.7803L26.3989 59.2763H34.0175L34.0173 59.2757H37.4031L29.7845 27.8428Z"
         fill="white"
         fillRule="evenodd"

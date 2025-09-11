@@ -5,7 +5,7 @@ import { CheckIcon, CopyIcon, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import type { MyUIMessage } from '@/types/app-message';
 import { api } from '../../convex/_generated/api';
-import type { Id } from '../../convex/_generated/dataModel';
+import type { Doc } from '../../convex/_generated/dataModel';
 import { Action, Actions } from './ai-elements/actions';
 import {
   AlertDialog,
@@ -20,50 +20,48 @@ import {
 } from './ui/alert-dialog';
 
 export type UserActionsProps = {
-  chatId?: string;
+  chat: Doc<'chats'>;
   message: MyUIMessage;
 };
 
-export default function UserActions({ chatId, message }: UserActionsProps) {
+export default function UserActions({ chat, message }: UserActionsProps) {
   const deleteMessage = useMutation(api.chats.deleteMessageAndAfter);
   const [isCopied, setIsCopied] = useState(false);
 
   const handleDelete = () => {
     deleteMessage({
-      chatId: chatId as Id<'chats'>,
+      chatId: chat._id,
       messageId: message.id,
     });
   };
 
   return (
     <Actions className="-bottom-8 absolute right-0">
-      {chatId && (
-        <AlertDialog>
-          <AlertDialogTrigger asChild>
-            <Action label="Delete">
-              <Trash2 className="size-3" />
-            </Action>
-          </AlertDialogTrigger>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Delete Message</AlertDialogTitle>
-              <AlertDialogDescription>
-                Are you sure you want to delete this message and all messages
-                after it? This action cannot be undone.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction
-                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                onClick={handleDelete}
-              >
-                Delete
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
-      )}
+      <AlertDialog>
+        <AlertDialogTrigger asChild>
+          <Action label="Delete">
+            <Trash2 className="size-3" />
+          </Action>
+        </AlertDialogTrigger>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Message</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete this message and all messages
+              after it? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={handleDelete}
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
       <Action
         label="Copy"
         onClick={() => {

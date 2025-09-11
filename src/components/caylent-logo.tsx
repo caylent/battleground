@@ -1,20 +1,23 @@
-'use client';
-
 import Image from 'next/image';
-import { useTheme } from 'next-themes';
+import { cn } from '@/lib/utils';
 
 export default function CaylentLogo({ className }: { className?: string }) {
-  const { resolvedTheme: theme } = useTheme();
-
   return (
-    <Image
-      alt="Caylent Logo"
-      className={className}
-      height={30}
-      src={
-        theme === 'dark' ? '/caylent-logo-dark.png' : '/caylent-logo-light.png'
-      }
-      width={100}
-    />
+    <>
+      <Image
+        alt="Caylent Logo"
+        className={cn(className, 'dark:hidden')}
+        height={30}
+        src={'/caylent-logo-light.png'}
+        width={100}
+      />
+      <Image
+        alt="Caylent Logo"
+        className={cn(className, 'hidden dark:inline')}
+        height={30}
+        src={'/caylent-logo-dark.png'}
+        width={100}
+      />
+    </>
   );
 }

@@ -1,28 +1,30 @@
 import { auth } from '@clerk/nextjs/server';
-import { createIdGenerator } from 'ai';
 import { fetchMutation, fetchQuery, preloadQuery } from 'convex/nextjs';
 import { notFound } from 'next/navigation';
-import { BattleChatWrapper } from '@/components/battle-chat';
+import { BattleWrapper } from '@/components/chat';
 import { DEFAULT_TEXT_MODEL } from '@/lib/model/models';
 import { api } from '../../../../convex/_generated/api';
 
-const chatIdGenerator = createIdGenerator({
-  prefix: 'chat',
-  size: 16,
-});
-
 async function initBattle(userId: string) {
-  const initialBattle = await fetchQuery(api.battle.getByUserId, {
+  const chats = await fetchQuery(api.chats.getAllByUser, {
     userId,
+    type: 'battle',
   });
 
-  if (!initialBattle) {
-    await fetchMutation(api.battle.create, {
+  // If no battle chats, create two to start
+  if (!chats.length) {
+    await fetchMutation(api.chats.create, {
       userId,
-      chats: [
-        { id: chatIdGenerator(), model: DEFAULT_TEXT_MODEL },
-        { id: chatIdGenerator(), model: DEFAULT_TEXT_MODEL },
-      ],
+      type: 'battle',
+      model: DEFAULT_TEXT_MODEL,
+      name: 'Battle Chat #1',
+    });
+
+    await fetchMutation(api.chats.create, {
+      userId,
+      type: 'battle',
+      model: DEFAULT_TEXT_MODEL,
+      name: 'Battle Chat #2',
     });
   }
 }
@@ -36,14 +38,15 @@ export default async function ChatPage() {
 
   initBattle(userId);
 
-  const preloadedBattle = await preloadQuery(api.battle.getByUserId, {
+  const preloadedChats = await preloadQuery(api.chats.getAllByUser, {
     userId,
+    type: 'battle',
   });
 
   return (
     <main className="flex max-h-screen-h-0 flex-1 flex-col overflow-hidden">
-      <div className="flex max-h-lvh max-w-full flex-1 flex-row gap-2 overflow-x-auto">
-        <BattleChatWrapper preloadedBattle={preloadedBattle} />
+      <div className="scrollbar-none ml-1 flex flex-1 gap-2 overflow-x-auto">
+        <BattleWrapper preloadedChats={preloadedChats} />
       </div>
     </main>
   );

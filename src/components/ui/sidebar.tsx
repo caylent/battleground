@@ -168,7 +168,7 @@ function Sidebar({
     return (
       <div
         className={cn(
-          'flex h-full w-(--sidebar-width) flex-col text-sidebar-foreground',
+          'flex h-full w-(--sidebar-width) flex-col overflow-hidden text-sidebar-foreground',
           className
         )}
         data-slot="sidebar"

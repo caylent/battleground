@@ -29,14 +29,7 @@ export const chatSchema = defineTable({
   isArchived: v.optional(v.boolean()),
   activeStreamId: v.optional(v.string()),
   model: v.optional(modelSchema),
-});
-
-export const battleSchema = defineTable({
-  userId: v.string(),
-  chats: v.array(v.object({
-    id: v.string(),
-    model: modelSchema,
-  })),
+  type: v.union(v.literal('chat'), v.literal('battle')),
 });
 
 export const promptSchema = defineTable({
@@ -48,5 +41,4 @@ export const promptSchema = defineTable({
 export default defineSchema({
   chats: chatSchema,
   prompts: promptSchema,
-  battles: battleSchema,
 });

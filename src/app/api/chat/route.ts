@@ -114,14 +114,15 @@ export async function POST(req: NextRequest) {
       maxOutputTokens: chat.model?.settings?.maxTokens,
       temperature: chat.model?.settings?.temperature,
       experimental_context: { userId },
-      experimental_telemetry: {
-        isEnabled: true,
-      },
-      providerOptions: {
-        bedrock: {
-          reasoningConfig: { type: 'enabled', budgetTokens: 1024 },
-        } satisfies BedrockProviderOptions,
-      },
+      ...(chat.model?.capabilities?.includes('REASONING')
+        ? {
+            providerOptions: {
+              bedrock: {
+                reasoningConfig: { type: 'enabled', budgetTokens: 1024 },
+              } satisfies BedrockProviderOptions,
+            },
+          }
+        : {}),
     });
 
     return result.toUIMessageStreamResponse<MyUIMessage>({
@@ -133,27 +134,17 @@ export async function POST(req: NextRequest) {
       messageMetadata: ({ part }) => {
         if (part.type === 'start') {
           const ttft = Date.now() - start;
-          return {
-            modelId: chat.model?.id ?? '',
-            ttft,
-          };
+          return { modelId: chat.model?.id ?? '', ttft };
         }
         if (part.type === 'reasoning-end') {
-          const reasoningTime = Date.now() - start;
-          return {
-            reasoningTime,
-          };
+          return { reasoningTime: Date.now() - start };
         }
         if (part.type === 'error') {
           if (typeof part.error === 'string') {
-            return {
-              error: part.error,
-            };
+            return { error: part.error };
           }
           if (part.error instanceof Error) {
-            return {
-              error: part.error.message,
-            };
+            return { error: part.error.message };
           }
         }
         if (part.type === 'finish') {

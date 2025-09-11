@@ -3,15 +3,15 @@ import { v } from "convex/values";
 import { api, internal } from "./_generated/api";
 import { modelSchema } from "./schema";
 
-// Messages use v.any() for maximum flexibility as per original schema
-
-// QUERIES (Read operations)
+// Chat Queries (Read operations)
 
 /**
  * Get all chats with pagination support
  */
-export const list = query({
+export const getByUser = query({
   args: {
+    userId: v.string(),
+    type: v.optional(v.union(v.literal('chat'), v.literal('battle'))),
     limit: v.optional(v.number()),
     cursor: v.optional(v.string()),
   },
@@ -19,12 +19,20 @@ export const list = query({
     const limit = Math.min(args.limit || 20, 100); // Cap at 100 for performance
     
     let query = ctx.db.query("chats").order("desc");
+
+    if (args.userId) {
+      query = query.filter((q) => q.eq(q.field("userId"), args.userId));
+    }
     
     if (args.cursor) {
       // Use cursor for pagination (last item's creation time)
       query = query.filter((q) => q.lt(q.field("_creationTime"), parseInt(args.cursor!)));
     }
     
+    if (args.type) {
+      query = query.filter((q) => q.eq(q.field("type"), args.type));
+    }
+
     const chats = await query.take(limit);
     
     // Get the cursor for the next page
@@ -44,10 +52,23 @@ export const list = query({
 /**
  * Get all chats (without pagination) - for simple use cases
  */
-export const listAll = query({
-  args: {},
-  handler: async (ctx) => {
-    return await ctx.db.query("chats").order("desc").collect();
+export const getAllByUser = query({
+  args: {
+    userId: v.string(),
+    type: v.optional(v.union(v.literal('chat'), v.literal('battle'))),
+  },
+  handler: async (ctx, args) => {
+    let query = ctx.db.query("chats").order("desc")
+
+    if (args.userId) {
+      query = query.filter((q) => q.eq(q.field("userId"), args.userId));
+    }
+    
+    if (args.type) {
+      query = query.filter((q) => q.eq(q.field("type"), args.type));
+    }
+
+    return await query.collect();
   },
 });
 
@@ -87,7 +108,7 @@ export const searchByName = query({
  * Get recent chats (most recently updated)
  */
 export const getRecent = query({
-  args: { 
+  args: {
     limit: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
@@ -96,6 +117,7 @@ export const getRecent = query({
     return await ctx.db
       .query("chats")
       .order("desc")
+      .filter((q) => q.eq(q.field("type"), "chat"))
       .take(limit);
   },
 });
@@ -143,7 +165,7 @@ export const getStats = query({
   },
 });
 
-// MUTATIONS (Write operations)
+// Chat Mutations (Write operations)
 
 /**
  * Create a new chat
@@ -151,6 +173,7 @@ export const getStats = query({
 export const create = mutation({
   args: {
     name: v.string(),
+    type: v.optional(v.union(v.literal('chat'), v.literal('battle'))),
     userId: v.string(),
     model: v.optional(modelSchema),
   },
@@ -164,6 +187,7 @@ export const create = mutation({
       messageCount: 0,
       updatedAt: now,
       model: args.model,
+      type: args.type || 'chat',
     });
     
     return chatId;
@@ -183,6 +207,7 @@ export const update = mutation({
     model: v.optional(modelSchema),
     activeStreamId: v.optional(v.string()),
     isArchived: v.optional(v.boolean()),
+    type: v.optional(v.union(v.literal('chat'), v.literal('battle'))),
   },
   handler: async (ctx, args) => {
     const { id, ...updateFields } = args;
@@ -218,6 +243,11 @@ export const update = mutation({
     // Handle modelId update
     if (updateFields.model !== undefined) {
       fieldsToUpdate.model = updateFields.model;
+    }
+
+    // Handle type update
+    if (updateFields.type !== undefined) {
+      fieldsToUpdate.type = updateFields.type;
     }
 
     // Always update the timestamp when any field is modified
@@ -331,6 +361,7 @@ export const branch = mutation({
       messageCount: branchedMessages.length,
       parentChatId: args.id, // Store reference to original chat
       branchFromIndex: args.branchFromIndex, // Store the branching point
+      type: 'chat',
     });
     
     return newChatId;

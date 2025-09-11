@@ -175,3 +175,11 @@ body {
 .thread-viewport > [data-radix-scroll-area-content] {
   @apply flex flex-col items-center self-stretch bg-inherit;
 }
+
+[data-streamdown="table-wrapper"] {
+  @apply w-full;
+}
+
+[data-streamdown="table"] {
+  @apply w-full;
+}

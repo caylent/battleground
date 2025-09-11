@@ -194,6 +194,22 @@ export type PromptInputMessage = {
   files?: FileUIPart[];
 };
 
+function getBase64(file: File) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+
+    reader.readAsDataURL(file);
+
+    reader.onload = () => {
+      resolve(reader.result); // this will be the base64 string
+    };
+
+    reader.onerror = (error) => {
+      reject(error);
+    };
+  });
+}
+
 export type PromptInputProps = Omit<
   HTMLAttributes<HTMLFormElement>,
   'onSubmit'
@@ -403,11 +419,12 @@ export const PromptInput = ({
   const handleSubmit: FormEventHandler<HTMLFormElement> = (event) => {
     event.preventDefault();
 
-    const files: FileUIPart[] = items.map(({ ...item }) => ({
+    const files: FileUIPart[] = items.map((item) => ({
       ...item,
     }));
 
     onSubmit({ text: event.currentTarget.message.value, files }, event);
+    setItems([]);
   };
 
   const ctx = useMemo<AttachmentsContext>(
