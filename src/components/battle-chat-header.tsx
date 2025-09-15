@@ -9,10 +9,17 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from './ui/dropdown-menu';
 
-export const BattleChatHeader = ({ chat }: { chat: Doc<'chats'> }) => {
+export const BattleChatHeader = ({
+  chat,
+  onExportResultsAction,
+}: {
+  chat: Doc<'chats'>;
+  onExportResultsAction?: () => void;
+}) => {
   const { userId } = useAuth();
   const createChat = useMutation(api.chats.create);
   const deleteChat = useMutation(api.chats.remove);
@@ -73,6 +80,10 @@ export const BattleChatHeader = ({ chat }: { chat: Doc<'chats'> }) => {
               onClick={() => clearBattleChats({ userId: userId ?? '' })}
             >
               <span>Clear all chats</span>
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={onExportResultsAction}>
+              <span>Export Results</span>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

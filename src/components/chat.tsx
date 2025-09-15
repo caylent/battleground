@@ -6,6 +6,7 @@ import { AIDevtools } from 'ai-sdk-devtools';
 import { type Preloaded, useMutation, usePreloadedQuery } from 'convex/react';
 import { notFound } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
+import { exportBattleResults } from '@/lib/export-battle-results';
 import type { MyUIMessage } from '@/types/app-message';
 import { api } from '../../convex/_generated/api';
 import type { Doc, Id } from '../../convex/_generated/dataModel';
@@ -45,11 +46,16 @@ export function BattleWrapper({
     }
   };
 
+  const handleExportResults = () => {
+    exportBattleResults(chats);
+  };
+
   return chats.map((chat) => (
     <div className="h-screen py-2" key={chat?._id}>
       <div className="flex h-full w-xl flex-col rounded-lg border p-2">
         <Chat
           chat={chat}
+          onExportResultsAction={handleExportResults}
           onSubmitAllAction={handleSubmitAll}
           registerSenderAction={registerSender}
         />
@@ -85,12 +91,14 @@ type ChatProps = {
     chatId: Id<'chats'>,
     fn: (args: PromptInputMessage) => void
   ) => () => void;
+  onExportResultsAction?: () => void;
 };
 
 export function Chat({
   chat,
   onSubmitAllAction,
   registerSenderAction,
+  onExportResultsAction,
 }: ChatProps) {
   const [shouldResume] = useState(!!chat.activeStreamId);
   const [error, setError] = useState<string | null>(null);
@@ -142,7 +150,12 @@ export function Chat({
 
   return (
     <>
-      {chat.type === 'battle' && <BattleChatHeader chat={chat} />}
+      {chat.type === 'battle' && (
+        <BattleChatHeader
+          chat={chat}
+          onExportResultsAction={onExportResultsAction}
+        />
+      )}
 
       <ChatConversation
         chat={chat}
