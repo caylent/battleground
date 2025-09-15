@@ -1,12 +1,7 @@
 'use client';
 
 import type { ChatStatus } from 'ai';
-import {
-  BrainIcon,
-  ImageIcon,
-  PaperclipIcon,
-  SettingsIcon,
-} from 'lucide-react';
+import { PaperclipIcon, SettingsIcon } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import {
   PromptInput,
@@ -24,6 +19,8 @@ import {
 import { type TextModel, textModels } from '@/lib/model/models';
 import type { Doc } from '../../convex/_generated/dataModel';
 import { ModelCombobox } from './model-combobox';
+import { PromptDropdown } from './prompt-dropdown';
+import { ToolToggles } from './tool-toggles';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
 import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
@@ -36,12 +33,6 @@ import {
 } from './ui/select';
 import { Switch } from './ui/switch';
 import { Textarea } from './ui/textarea';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from './ui/tooltip';
 
 export type AppPromptInputProps = {
   status: ChatStatus;
@@ -91,6 +82,7 @@ export const AppPromptInput = ({
         chatType={chatType}
         input={input}
         model={model}
+        setInput={setInput}
         setModelAction={setModelAction}
         status={status}
       />
@@ -143,12 +135,14 @@ const AppPromptInputToolbar = ({
   setModelAction,
   status,
   input,
+  setInput,
 }: {
   model: Doc<'chats'>['model'];
   chatType: Doc<'chats'>['type'];
   setModelAction: (model: Doc<'chats'>['model']) => void;
   status: ChatStatus;
   input: string;
+  setInput: (input: string) => void;
 }) => {
   const { openFileDialog } = usePromptInputAttachments();
 
@@ -190,66 +184,13 @@ const AppPromptInputToolbar = ({
           setModelAction={setModelAction}
         />
         <ModelSettings model={model} updateModelSetting={updateModelSetting} />
-        {model?.capabilities?.includes('TOOL_STREAMING') &&
-          chatType === 'chat' && (
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <PromptInputButton
-                    onClick={() => {
-                      if (
-                        model?.settings?.activeTools?.includes(
-                          'image_generation'
-                        )
-                      ) {
-                        removeActiveTool('image_generation');
-                      } else {
-                        addActiveTool('image_generation');
-                      }
-                    }}
-                    variant={
-                      model?.settings?.activeTools?.includes('image_generation')
-                        ? 'outline'
-                        : 'ghost'
-                    }
-                  >
-                    <ImageIcon className="size-3.5" />
-                    Image
-                  </PromptInputButton>
-                </TooltipTrigger>
-                <TooltipContent>Enable Image Generation</TooltipContent>
-              </Tooltip>
-
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <PromptInputButton
-                    onClick={() => {
-                      if (
-                        model?.settings?.activeTools?.includes(
-                          'global_context_manager'
-                        )
-                      ) {
-                        removeActiveTool('global_context_manager');
-                      } else {
-                        addActiveTool('global_context_manager');
-                      }
-                    }}
-                    variant={
-                      model?.settings?.activeTools?.includes(
-                        'global_context_manager'
-                      )
-                        ? 'outline'
-                        : 'ghost'
-                    }
-                  >
-                    <BrainIcon className="size-3.5" />
-                    GCM
-                  </PromptInputButton>
-                </TooltipTrigger>
-                <TooltipContent>Enable Global Context Manager</TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-          )}
+        <ToolToggles
+          addActiveToolAction={addActiveTool}
+          chatType={chatType}
+          model={model}
+          removeActiveToolAction={removeActiveTool}
+        />
+        <PromptDropdown currentPrompt={input} onLoadPromptAction={setInput} />
       </PromptInputTools>
       {model?.capabilities?.includes('IMAGE') && (
         <PromptInputButton

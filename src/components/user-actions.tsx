@@ -1,12 +1,13 @@
 'use client';
 
 import { useMutation } from 'convex/react';
-import { CheckIcon, CopyIcon, Trash2 } from 'lucide-react';
+import { CheckIcon, CopyIcon, SaveIcon, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import type { MyUIMessage } from '@/types/app-message';
 import { api } from '../../convex/_generated/api';
 import type { Doc } from '../../convex/_generated/dataModel';
 import { Action, Actions } from './ai-elements/actions';
+import { SavePromptDialog } from './save-prompt-dialog';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -35,8 +36,26 @@ export default function UserActions({ chat, message }: UserActionsProps) {
     });
   };
 
+  // Extract text content from message for saving as prompt
+  const getMessageContent = () => {
+    return message.parts
+      .filter((p) => p.type === 'text')
+      .map((p) => p.text)
+      .join('\n\n');
+  };
+
+  const messageContent = getMessageContent();
+
   return (
     <Actions className="-bottom-8 absolute right-0">
+      <SavePromptDialog
+        disabled={!messageContent.trim()}
+        prompt={messageContent}
+      >
+        <Action label="Save as Prompt">
+          <SaveIcon className="size-3" />
+        </Action>
+      </SavePromptDialog>
       <AlertDialog>
         <AlertDialogTrigger asChild>
           <Action label="Delete">
