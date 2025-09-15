@@ -48,9 +48,23 @@ import {
 import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
 
+/**
+ * Converts a File object to a data URL
+ * @param file - The file to convert
+ * @returns Promise that resolves to the data URL string
+ */
+const createDataURL = (file: File): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = () => reject(reader.error);
+    reader.readAsDataURL(file);
+  });
+};
+
 type AttachmentsContext = {
   files: (FileUIPart & { id: string })[];
-  add: (files: File[] | FileList) => void;
+  add: (files: File[] | FileList) => Promise<void>;
   remove: (id: string) => void;
   clear: () => void;
   openFileDialog: () => void;
@@ -194,22 +208,6 @@ export type PromptInputMessage = {
   files?: FileUIPart[];
 };
 
-function getBase64(file: File) {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-
-    reader.readAsDataURL(file);
-
-    reader.onload = () => {
-      resolve(reader.result); // this will be the base64 string
-    };
-
-    reader.onerror = (error) => {
-      reject(error);
-    };
-  });
-}
-
 export type PromptInputProps = Omit<
   HTMLAttributes<HTMLFormElement>,
   'onSubmit'
@@ -297,33 +295,56 @@ export const PromptInput = ({
         });
         return;
       }
-      setItems((prev) => {
-        const capacity =
-          typeof maxFiles === 'number'
-            ? Math.max(0, maxFiles - prev.length)
-            : undefined;
-        const capped =
-          typeof capacity === 'number' ? sized.slice(0, capacity) : sized;
-        if (typeof capacity === 'number' && sized.length > capacity) {
-          onError?.({
-            code: 'max_files',
-            message: 'Too many files. Some were not added.',
-          });
+
+      // Get current items to calculate capacity
+      const capacity =
+        typeof maxFiles === 'number'
+          ? Math.max(0, maxFiles - items.length)
+          : undefined;
+      const capped =
+        typeof capacity === 'number' ? sized.slice(0, capacity) : sized;
+      if (typeof capacity === 'number' && sized.length > capacity) {
+        onError?.({
+          code: 'max_files',
+          message: 'Too many files. Some were not added.',
+        });
+      }
+
+      // Process files asynchronously
+      Promise.all(
+        capped.map(async (file) => {
+          try {
+            const url = await createDataURL(file);
+            return {
+              id: nanoid(),
+              type: 'file' as const,
+              url,
+              mediaType: file.type,
+              filename: file.name,
+            };
+          } catch (error) {
+            console.error(
+              'Error creating data URL for file:',
+              file.name,
+              error
+            );
+            onError?.({
+              code: 'file_processing',
+              message: `Failed to process file: ${file.name}`,
+            });
+            return null;
+          }
+        })
+      ).then((processedFiles) => {
+        const validFiles = processedFiles.filter(Boolean) as (FileUIPart & {
+          id: string;
+        })[];
+        if (validFiles.length > 0) {
+          setItems((currentItems) => currentItems.concat(validFiles));
         }
-        const next: (FileUIPart & { id: string })[] = [];
-        for (const file of capped) {
-          next.push({
-            id: nanoid(),
-            type: 'file',
-            url: URL.createObjectURL(file),
-            mediaType: file.type,
-            filename: file.name,
-          });
-        }
-        return prev.concat(next);
       });
     },
-    [matchesAccept, maxFiles, maxFileSize, onError]
+    [matchesAccept, maxFiles, maxFileSize, onError, items.length]
   );
 
   const remove = useCallback((id: string) => {
@@ -374,7 +395,9 @@ export const PromptInput = ({
         e.preventDefault();
       }
       if (e.dataTransfer?.files && e.dataTransfer.files.length > 0) {
-        add(e.dataTransfer.files);
+        add(e.dataTransfer.files).catch((error) => {
+          console.error('Error adding files from drag and drop:', error);
+        });
       }
     };
     form.addEventListener('dragover', onDragOver);
@@ -399,7 +422,9 @@ export const PromptInput = ({
         e.preventDefault();
       }
       if (e.dataTransfer?.files && e.dataTransfer.files.length > 0) {
-        add(e.dataTransfer.files);
+        add(e.dataTransfer.files).catch((error) => {
+          console.error('Error adding files from global drop:', error);
+        });
       }
     };
     document.addEventListener('dragover', onDragOver);

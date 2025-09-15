@@ -1,11 +1,12 @@
 'use client';
 
-import { CheckIcon, CopyIcon, InfoIcon, RefreshCcwIcon } from 'lucide-react';
+import { CheckIcon, CopyIcon, RefreshCcwIcon } from 'lucide-react';
 import { useState } from 'react';
 import type { MyUIMessage } from '@/types/app-message';
 import type { Doc } from '../../convex/_generated/dataModel';
 import { Action, Actions } from './ai-elements/actions';
 import InlineMetadata from './inline-metadata';
+import ResponseMetadata from './response-metadata';
 
 export type AssistantActionsProps = {
   chat: Doc<'chats'>;
@@ -50,9 +51,7 @@ export default function AssistantActions({
         </Action>
       )}
 
-      <Action className="flex sm:hidden" label="Metrics">
-        <InfoIcon className="size-3" />
-      </Action>
+      {message.metadata && <ResponseMetadata metadata={message.metadata} />}
 
       {message.metadata && <InlineMetadata metadata={message.metadata} />}
     </Actions>

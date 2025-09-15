@@ -65,12 +65,11 @@ export default function ChatConversation({
                   className="relative overflow-visible"
                   variant="flat"
                 >
-                  {message.parts.length === 0 && (
-                    <div>
-                      {message.metadata?.error ??
-                        'Error occured processing your message'}
-                    </div>
-                  )}
+                  {status !== 'error' &&
+                    message.parts.length === 0 &&
+                    message.metadata?.error && (
+                      <div>{message.metadata?.error}</div>
+                    )}
 
                   {message.parts.map((part, partIdx) => {
                     switch (part.type) {
@@ -154,7 +153,7 @@ export default function ChatConversation({
         })}
         {status === 'error' && (
           <div className="mx-auto flex max-w-xl flex-col items-center gap-2 rounded-xl border bg-muted/20 p-4 text-sm">
-            Error: {error}
+            Error: {error?.replace('undefined: ', '') ?? 'Unknown error'}
             <Button onClick={onRetryAction} variant="secondary">
               Try again
             </Button>

@@ -142,10 +142,10 @@ export async function POST(req: NextRequest) {
         }
         if (part.type === 'error') {
           if (typeof part.error === 'string') {
-            return { error: part.error };
+            return { error: part.error.replace('undefined: ', '') };
           }
           if (part.error instanceof Error) {
-            return { error: part.error.message };
+            return { error: part.error.message.replace('undefined: ', '') };
           }
         }
         if (part.type === 'finish') {

@@ -20,8 +20,10 @@ export const BattleChatHeader = ({ chat }: { chat: Doc<'chats'> }) => {
   const clearBattleChats = useMutation(api.chats.clearBattleChats);
 
   return (
-    <div className="-m-2 mb-2 flex items-center rounded-t-lg bg-white/5 p-2">
-      <span className="mr-auto text-sm text-white/50">{chat.model?.name}</span>
+    <div className="-m-2 mb-2 flex items-center rounded-t-lg bg-foreground/10 p-2">
+      <span className="mr-auto font-light text-foreground/90 text-sm">
+        {chat.model?.name}
+      </span>
       <div className="flex items-center gap-2">
         <ModelCombobox
           model={chat.model}

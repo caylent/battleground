@@ -92,13 +92,14 @@ export function Chat({
   onSubmitAllAction,
   registerSenderAction,
 }: ChatProps) {
+  const [shouldResume] = useState(!!chat.activeStreamId);
   const [error, setError] = useState<string | null>(null);
   const updateChat = useMutation(api.chats.update);
 
   const { messages, sendMessage, status, regenerate, setMessages } =
     useChat<MyUIMessage>({
       id: chat._id,
-      resume: !!chat.activeStreamId,
+      resume: shouldResume,
       messages: chat.messages,
       transport: new DefaultChatTransport({
         prepareSendMessagesRequest: ({
