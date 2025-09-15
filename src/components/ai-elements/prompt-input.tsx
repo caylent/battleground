@@ -64,7 +64,7 @@ const createDataURL = (file: File): Promise<string> => {
 
 type AttachmentsContext = {
   files: (FileUIPart & { id: string })[];
-  add: (files: File[] | FileList) => Promise<void>;
+  add: (files: File[] | FileList) => void;
   remove: (id: string) => void;
   clear: () => void;
   openFileDialog: () => void;
@@ -222,7 +222,7 @@ export type PromptInputProps = Omit<
   maxFiles?: number;
   maxFileSize?: number; // bytes
   onError?: (err: {
-    code: 'max_files' | 'max_file_size' | 'accept';
+    code: 'max_files' | 'max_file_size' | 'accept' | 'file_processing';
     message: string;
   }) => void;
   onSubmit: (
@@ -371,11 +371,9 @@ export const PromptInput = ({
   // Note: File input cannot be programmatically set for security reasons
   // The syncHiddenInput prop is no longer functional
   useEffect(() => {
-    if (syncHiddenInput && inputRef.current) {
+    if (syncHiddenInput && inputRef.current && items.length === 0) {
       // Clear the input when items are cleared
-      if (items.length === 0) {
-        inputRef.current.value = '';
-      }
+      inputRef.current.value = '';
     }
   }, [items, syncHiddenInput]);
 
@@ -395,9 +393,7 @@ export const PromptInput = ({
         e.preventDefault();
       }
       if (e.dataTransfer?.files && e.dataTransfer.files.length > 0) {
-        add(e.dataTransfer.files).catch((error) => {
-          console.error('Error adding files from drag and drop:', error);
-        });
+        add(e.dataTransfer.files);
       }
     };
     form.addEventListener('dragover', onDragOver);
@@ -422,9 +418,7 @@ export const PromptInput = ({
         e.preventDefault();
       }
       if (e.dataTransfer?.files && e.dataTransfer.files.length > 0) {
-        add(e.dataTransfer.files).catch((error) => {
-          console.error('Error adding files from global drop:', error);
-        });
+        add(e.dataTransfer.files);
       }
     };
     document.addEventListener('dragover', onDragOver);
