@@ -1,3 +1,4 @@
+import { auth } from '@clerk/nextjs/server';
 import { preloadQuery } from 'convex/nextjs';
 import { GithubIcon } from 'lucide-react';
 import Link from 'next/link';
@@ -77,7 +78,16 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 }
 
 async function ChatSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-  const preloadedChats = await preloadQuery(api.chats.getRecent, { limit: 10 });
+  const { userId } = await auth();
+
+  if (!userId) {
+    return null;
+  }
+
+  const preloadedChats = await preloadQuery(api.chats.getRecent, {
+    limit: 10,
+    userId,
+  });
 
   return (
     <Sidebar

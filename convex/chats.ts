@@ -18,12 +18,12 @@ export const getByUser = query({
   handler: async (ctx, args) => {
     const limit = Math.min(args.limit || 20, 100); // Cap at 100 for performance
     
-    let query = ctx.db.query("chats").order("desc");
+    let query = ctx.db
+      .query("chats")
+      .order("desc")
+      .filter((q) => q.eq(q.field("userId"), args.userId))
+      .filter((q) => q.eq(q.field("type"), args.type));
 
-    if (args.userId) {
-      query = query.filter((q) => q.eq(q.field("userId"), args.userId));
-    }
-    
     if (args.cursor) {
       // Use cursor for pagination (last item's creation time)
       query = query.filter((q) => q.lt(q.field("_creationTime"), parseInt(args.cursor!)));
@@ -109,6 +109,7 @@ export const searchByName = query({
  */
 export const getRecent = query({
   args: {
+    userId: v.string(),
     limit: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
@@ -117,6 +118,7 @@ export const getRecent = query({
     return await ctx.db
       .query("chats")
       .order("desc")
+      .filter((q) => q.eq(q.field("userId"), args.userId))
       .filter((q) => q.eq(q.field("type"), "chat"))
       .take(limit);
   },
