@@ -68,7 +68,6 @@ export async function POST(req: NextRequest) {
           messages: convertAiMessagesToCoreMessages(messages),
           maxTokens: config?.maxTokens.value,
           temperature: config?.temperature.value,
-          topP: config?.topP.value,
           headers: {
             "user-agent": "node",
           },

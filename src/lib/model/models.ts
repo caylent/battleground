@@ -131,6 +131,17 @@ export const textModels: TextModel[] = [
   },
   {
     provider: "Anthropic",
+    id: "global.anthropic.claude-haiku-4-5-20251001-v1:0",
+    name: "Claude Haiku 4.5",
+    inputCostPerToken: 0.001 / 1e3,
+    outputCostPerToken: 0.005 / 1e3,
+    inputModalities: ["TEXT"],
+    outputModalities: ["TEXT"],
+    config: anthropicClaudeDefaultConfig,
+    systemPromptSupport: true,
+  },
+  {
+    provider: "Anthropic",
     id: "anthropic.claude-3-sonnet-20240229-v1:0",
     name: "Claude 3 Sonnet",
     inputCostPerToken: 0.003 / 1e3,
