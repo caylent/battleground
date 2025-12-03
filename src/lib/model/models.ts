@@ -108,7 +108,7 @@ export const textModels: TextModel[] = [
   },
   {
     provider: "Amazon",
-    id: "us.amazon.nova-2-lite-v1:0",
+    id: "global.amazon.nova-2-lite-v1:0",
     region: "us-east-1",
     name: "Nova 2 Lite",
     inputCostPerToken: 0.0003 / 1e3,
@@ -120,11 +120,11 @@ export const textModels: TextModel[] = [
   },
   {
     provider: "Amazon",
-    id: "us.amazon.nova-2-omni-v1:0",
+    id: "global.amazon.nova-2-omni-v1:0",
     region: "us-east-1",
     name: "Nova 2 Omni",
-    inputCostPerToken: 0.0002 / 1e3,
-    outputCostPerToken: 0.0013 / 1e3,
+    inputCostPerToken: 0.0003 / 1e3,
+    outputCostPerToken: 0.0025 / 1e3,
     inputModalities: ["TEXT", "IMAGE"],
     outputModalities: ["TEXT", "IMAGE"],
     config: novaConfig,
