@@ -248,6 +248,18 @@ export const textModels: TextModel[] = [
     systemPromptSupport: true,
   },
   {
+    provider: "Anthropic",
+    id: "global.anthropic.claude-opus-4-6-v1",
+    region: "us-east-1",
+    name: "Claude 4.6 Opus",
+    inputCostPerToken: 0.005 / 1e3,
+    outputCostPerToken: 0.025 / 1e3,
+    inputModalities: ["TEXT", "IMAGE"],
+    outputModalities: ["TEXT"],
+    config: anthropicClaudeSonnet35Config,
+    systemPromptSupport: true,
+  },
+  {
     provider: "Deepseek",
     id: "us.deepseek.r1-v1:0",
     name: "Deepseek R1",
